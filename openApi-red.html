@@ -1,0 +1,404 @@
+<script type="text/javascript">
+
+  async function createApiList(node, apiList) {
+    apiList = {}
+    let openApiUrl = encodeURI($('#node-input-openApiUrl').val())
+    $('.inputUrl .red-ui-typedInput-container').removeClass( "error")
+    $('.errorUrl').html('')
+    // server call
+    return $.get( "/getNewOpenApiInfo?openApiUrl=" + openApiUrl, function(response, status) {
+      // return error Msg from openApi
+      if (typeof response === "string") setUrlInputError(response) 
+      else return response
+    })
+    .fail(function(e) {
+      setUrlInputError(e)
+    })
+  }
+
+  function setUrlInputError(message) {
+    $('.inputUrl .red-ui-typedInput-container').addClass( "error")
+    $('#node-input-api').val("")
+    $('#node-input-operation').val("")
+    $('.errorUrl').html(message)
+  }
+  
+  function objectHasValues(object) {
+    return (typeof object === 'object' && Object.keys(object).length > 0 && object.constructor === Object)
+  }
+
+  function createAPISelector(node, apiList) {
+      $('#node-input-api').empty().append('<option selected="selected" value=""></option>');
+      $.each(apiList, function(apiKey, value) {
+          $("#node-input-api").append("<option value=" + apiKey + ">" + apiKey + "</option>");
+      })
+      $('#node-input-api').val(node.api)
+  }
+
+  function createOperationSelector(node, apiList) {
+      $('#node-input-operation').empty().append('<option selected="selected" value=""></option>');
+      let api = $('#node-input-api').val()
+      if (!api) api = node.api
+      if (api !== "" && apiList[api] ) {
+        $.each(apiList[api], function(operation, value) {
+          $("#node-input-operation").append("<option value=" + value.operationId + ">" + value.summary + "</option>")
+        })
+      }
+      $('#node-input-operation').val(node.operation)
+  }
+
+  function createParameterList(node, apiList) {
+    $("#node-input-parameters-container").empty()
+    let api = $('#node-input-api').val()
+    let operation = $('#node-input-operation').val()
+
+    if (api && operation) {
+      let parameterList = apiList[api][operation].parameters
+      if (parameterList) {
+        for (let param of parameterList) {
+          $("#node-input-parameters-container").editableList('addItem', param)
+        }
+      }
+    }
+  }
+
+  function createJsonParameterList(schema, elementId) {
+    let jsonInputDefault = {}
+    let jsonInputRequired = {}
+    let propList = '' 
+    for (let prop in schema.properties) {
+      let required = (Array.isArray(schema.required) && schema.required.includes(prop))
+      let requiredStyle = ''
+      let requiredNote = ''
+      if (required) {
+          requiredStyle = '<span class="paramIsRequired">*</span>'
+          requiredNote = '- required - '
+          jsonInputRequired[prop] = requiredNote + schema.properties[prop].type
+      }
+      jsonInputDefault[prop] = requiredNote + schema.properties[prop].type
+      let description =  schema.properties[prop].description
+      // Title prop has problems with ""
+      if (description) description = description.replace(/"/g, "&quot;")
+      propList = propList + '<div title="Description: ' + description + '">' + prop +  requiredStyle + '</div>'
+    }
+    let listButton = ''
+    if (!propList) propList = 'No json parameter keys stated!'
+    propList = '<div style="display: none" class="' + elementId + '-json-keys"><div class="json-key">' + propList + '</div></div>'
+    listButton = '<div><button type="button" id="' + elementId + '_parameterList' + '" class="btn">show keys</button></div>'
+    // havev to undone any click events before or else it would be added and triggered multiple times
+    $(document).off('click', '#'+ elementId + '_parameterList').on('click', '#'+ elementId + '_parameterList', function(){
+      $('.' + elementId + '-json-keys').toggle()
+      if ($(this).text() === 'show keys') $(this).text('hide keys')
+      else $(this).text('show keys')
+    })
+
+    let jsonButtonDefault = createJsonInputButton(elementId, jsonInputDefault, 'default')
+    let jsonButtonRequired = createJsonInputButton(elementId, jsonInputRequired, 'required')
+    return {propList, listButton, jsonButtonDefault, jsonButtonRequired}
+  }
+
+  function createJsonInputButton(elementId, jsonValues, name) {
+    if (objectHasValues(jsonValues)) {
+      let button = '<div><button type="button" id="' + elementId + '_' + name + '" class="btn">set ' + name + '</button></div>'
+      $(document).on("click", "#"+ elementId + '_' + name, function(){ 
+        let currentValues = $("#" + elementId).val()
+        let setValues = {}
+        if (currentValues.length > 0) {
+          currentValues = JSON.parse(currentValues)
+          // merge param values with current existing values
+          $.extend(setValues, jsonValues, currentValues)
+        } else {
+          setValues = jsonValues
+        }
+        $("#" + elementId).typedInput('value', JSON.stringify(setValues))
+      })
+      return (button)
+    } else {
+      return ('')
+    }
+  }
+
+  function setOperationInfo (apiList) {
+    let api = $('#node-input-api').val()
+    let operation = $('#node-input-operation').val()
+
+    if (api && operation && objectHasValues(apiList)) {
+      let paramDetails = apiList[api][operation]
+      let description = paramDetails.description
+      $("#operation-info").attr('paramName', paramDetails.summary)
+      if (!description) description = 'No Description'
+        $('#operation-info').attr('title', description)
+        let text = paramDetails.operationId
+      if (!paramDetails.parameters) text = text + '<span style="color: red;"> - No parameters found - </span>'
+        $('#operation-info').html(text)
+    } else {
+        $("#operation-info").attr('title', '')
+        $('#operation-info').html(' ')
+    }
+  }
+
+  RED.nodes.registerType('openApi-red', {
+    category: 'network',
+    color: '#b197ff',
+    defaults: {
+      name: {value:""},
+      openApiUrl: {value:""},
+      api: {value:""},
+      operation: {value: ""},
+      operationName: {value: ""},
+      parameters: { value: {}, validate:function(v) { 
+        let isValid = true
+        for (let parameter in this.parameters) {
+          let param = this.parameters[parameter]
+          if (param.required && param.value.toString() === '') isValid = false
+        }
+        return isValid
+      }}
+    },
+    inputs:1,
+    outputs:1,
+    icon: "white-globe.png",
+    label: function() {
+        if (this.name) return this.name
+        else if (this.operationName) return this.operationName
+        else return "openApi client";
+    },
+    oneditprepare: function() {
+      let node = this
+      let openingNode = true
+      // can't save api list because it can be some MB and will cause an flow overhead -> can't deploy anymore
+      let apiList = {}
+      $('#node-input-parameters-container').css('min-height','300px').css('min-width','650px').editableList({
+      addButton: false,
+      addItem: function(row, i, param) {
+        row.css({'display': 'flex', 'align-items': 'center'})
+        // add custom attribute to find parameter with in and name (can't be id, because of blanks (for example Json Request Body))
+        // if a parameter has a identical name (depreceated) it can't have the same 'in' (query, path, header,...)
+        let parameterName = param.in + ' ' + param.name
+        row.attr('param_in_name', parameterName)
+
+        let savedParameterValues 
+        if ( objectHasValues(node.parameters[parameterName])) savedParameterValues = node.parameters[parameterName]
+        // create default object
+        else { 
+          node.parameters[parameterName] = {
+            'name': param.name,
+            'in': param.in,
+            'required': param.required,
+            'value': '',
+            'isActive': false
+          }
+        }
+
+        // first column
+        // we build a checkbox to check wanted parameters (parameter has default values)
+        let paramIsActive = $('<input/>', { class: "node-input-parameter paramChecked", type: "checkbox"}).appendTo(row)
+        if (param.required) paramIsActive.prop({'checked' : true, 'disabled': true })
+        else if (savedParameterValues) paramIsActive.prop('checked', savedParameterValues.isActive) 
+
+        // second column
+        // param name and description
+        let secondColumnInfo = param.name
+        if (param.required) secondColumnInfo += '<span class="paramIsRequired">*</span>'
+        let description = param.description
+        // title object has problems with '"'
+        if (description) description = description.replace(/"/g, "&quot;")
+        else description = 'No description found!'
+        if (param.type === 'array' && !(param.items && param.items.enum && param.items.enum.length > 0) )  description += "\nAttention: No Array selection found! You have to enter it manuelly!"
+        $('<div class="paramName" title="Description: ' + description  + '">' + secondColumnInfo + '</div>').appendTo(row)
+
+        // third column
+        // param type or if json build list and input
+        let elementId = "OpenAPI_Parameter_" + i
+        if (param.type) {
+            $('<div class="paramType">' + param.type + '</div>').appendTo(row)
+        } else if (param.name === 'Json Request Body' || param.name === 'body') {
+          // TODO bug key anzeigen, nur beim öffnen?
+            let jsonParam = createJsonParameterList(param.schema, elementId)
+            $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
+        }
+      
+        // fourth column
+        // input element
+        let inputElement = $('<input/>', { class: "node-input-parameter paramValue", id: elementId, type: "text"})
+        // if array and selection items are available we use them. Otherwise it become a normal input field
+        if (param.type === 'array' && param.items && param.items.enum && param.items.enum.length > 0) {
+          let buildArraySelector = $('<select type="text" class="node-input-parameter paramValue" "id=' + elementId + '"><option value=""></option></select>')
+          param.items.enum.forEach( (i) => buildArraySelector.append('<option value=' + i + '>' + i + '</option>')); 
+          if (savedParameterValues) buildArraySelector.val(savedParameterValues.value)
+          buildArraySelector.appendTo(row)
+        } else {
+          inputElement.appendTo(row);
+          // if (param.type === 'boolean') $("#" + elementId).typedInput({types: ['bool', 'msg', 'flow', 'global']})
+          // else if (param.type === 'integer') $("#" + elementId).typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
+          // else if (param.name === 'Json Request Body' || param.name === 'body') $("#" + elementId).typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
+          // else $("#" + elementId).typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
+          
+          if (param.type === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
+          else if (param.type === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
+          else if (param.name === 'Json Request Body' || param.name === 'body') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
+          else inputElement.typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
+          
+          if (savedParameterValues) {
+            inputElement.typedInput('value', savedParameterValues.value)
+            inputElement.typedInput('type', savedParameterValues.inputType)
+          }
+
+          inputElement.appendTo(row);
+        }
+      }
+    })
+
+    // Warning: Change can be triggered by opening the node!
+    $('#node-input-api').change(function(){
+      if (!openingNode) createOperationSelector(node, apiList)
+    })
+  
+    $('#node-input-operation').change(function(){
+      if (!openingNode && objectHasValues(apiList)) {
+        node.parameters = {}
+        createParameterList(node, apiList)
+        setOperationInfo(apiList)
+      }
+    })
+
+    $('#node-input-createOpenApi-ApiFromUrl').on("click", function() {
+      createApiList(node, apiList).then( (value) => {
+        apiList = value
+        createAPISelector(node, apiList)
+        createOperationSelector(node, apiList)
+      }).catch( (e) => console.log("Error: " + e))
+    })
+
+    // server call for building api is async therefore put this at the end to not trigger other events
+    if (node.openApiUrl) {
+      createApiList(node, apiList).then( (value) => {
+        apiList = value
+        createAPISelector(node, apiList)
+        createOperationSelector(node, apiList)
+        createParameterList(node, apiList)
+        setOperationInfo(apiList)
+      }).catch( (e) => setUrlInputError(e))
+    }
+    openingNode = false
+  },
+  oneditsave: function() {
+    let node = this
+    node.operationName = $('#operation-info').attr('paramName')
+    
+    $('#node-input-parameters-container').editableList('items').each(function(i) {
+      let paramActivation = $(this).find('.paramChecked').prop('checked')
+      let paramName = $(this).attr('param_in_name')
+      let param = $(this).find('.paramValue')
+      let paramInputType = $('#' + param.attr('id')).typedInput('type')
+      
+      if (!objectHasValues(node.parameters[paramName]) ) console.log('Error: Parameter not found in node.parameters')
+      node.parameters[paramName].isActive = paramActivation
+      node.parameters[paramName].value = param.val()
+      node.parameters[paramName].inputType = paramInputType
+    })
+  }
+})
+</script>
+
+<script type="text/html" data-template-name="openApi-red">
+  <div id="openApi-red">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row inputUrl">
+        <label for="node-input-openApiUrl"><i class="icon-tag"></i> URL</label>
+        <input type="text" id="node-input-openApiUrl">
+        <button type="button" id="node-input-createOpenApi-ApiFromUrl" class="btn">read</button>
+    </div>
+    <div class="errorUrl"></div>
+    <hr>
+    <div class="form-row">
+        <label for="node-input-api"><i class="icon-tag"></i> API tag</label>
+        <select type="text" id="node-input-api" >
+            <option value=""></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-operation"><i class="icon-tag"></i> Operation</label>
+        <select type="text" id="node-input-operation" >
+            <option value=""></option>
+        </select>
+        <span id="operation-info"> - </span>
+    </div>
+    <hr>
+    <!-- The parameters-list -->
+    <div class="node-row-parameters">
+        <label for="node-input-parameters-container"><i class="fa fa-list"></i> Parameters </label>
+        <div class="form-row node-input-parameters-container-row">
+            <ol id="node-input-parameters-container"></ol>
+        </div>
+        <span style="color: red;">*</span> = required
+    </div>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="openApi-red">
+    <p>Use OpenAPI / Swagger with Node-Red.</p>
+    
+    <h3>Inputs</h3>
+        <dl class="message-properties">
+            <dt>Name
+                <span class="property-type">string</span>
+            </dt>
+            <dd> set a manuell name for the node. If no name is set, the node sets the selected operation name.</dd>
+            <dt>URL
+              <span class="property-type">string</span>
+            </dt>
+            <dd> set the full url domain name (incl. http:// / https://) for the OpenAPI document. By clicking on 'read' it will build the API and operation Selectors.</dd>
+            <dt>API tag
+              <span class="property-type">enum</span>
+            </dt>
+            <dd> Preselector for the operation. Grouped by the 'tags' in each operation. </dd>
+            <dt>Operation
+              <span class="property-type">enum</span>
+            </dt>
+            <dd> Selector for the OpenAPI operation. The selection name is set by the 'summary'. Behind the selector field is the (unique) operation id. By mouse-over it will show the full operation Description.</dd>
+            <dt class="optional">Parameters <span class="property-type">depending</span></dt>
+            <dd> If the selected operation has parameters, they will be listed here. The description can be found by mouse-over the parameter name. If the parameter is required, it will be marked with a red star behind the name.
+              For Json Objects with defined keys there will be 3 Buttons: 'set required' and 'set default' will build a json-object with the correct key names and the necessary type info as the value. 'show keys' show all possible key parameters with additional info by mouse-over the key name.</dd>
+        </dl>
+    
+     <h3>Outputs</h3>
+      <dl class="message-properties">
+        <dt>Payload
+          <span class="property-type">object</span>
+          <dd> Returns the complete OpenAPI object.
+          </dd>
+        </dt>
+      </dl>
+    
+    <h3>Authentification</h3>
+      For authentification you can use the Node-Red to get your token. This token has to be set into msg.openApiToken.
+
+    <h3>Dynamic fields</h3>
+    For using dynamic OpenApi URL, operation or parameter put those into msg.openApiUrl (string), msg.operation (operationId as string) and msg.parameters (object with key as parameter name). 
+
+    <h3>References</h3>
+        <ul>
+            <li><a href="https://www.npmjs.com/package/swagger-client">Based on npm swagger-client</a> - which does almost all the magic here</li>
+            <li><a>GitHub</a> - the nodes github repository</li>
+        </ul>
+    </script>
+</script>
+
+<style>
+  #openApi-red .error { border:2px solid red !important; }
+  #openApi-red .errorUrl, #openApi-red .paramIsRequired { color: red; font-weight: bold;}
+  #openApi-red .paramName { 
+    /* width: 25%; */
+    min-width: 170px;
+   }
+  #openApi-red .paramType { 
+    /* width: 15%; */
+    min-width: 100px;
+  }
+  #openApi-red input.node-input-parameter.paramChecked { width: 45px !important;}
+  #openApi-red .red-ui-typedInput-container { width: calc(100% - 315px) !important; }
+</style>
