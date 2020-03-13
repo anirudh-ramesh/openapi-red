@@ -26,7 +26,7 @@ For JSON-parameters you can further show the structure by clicking on show keys.
 
 ## 3. Parameter configuration
 
-Each parameter has an input-field corresponding to its type. You can further define that a paremeter shall be read from the incoming message object or define a jsonata expression.
+Each parameter has an input-field corresponding to its type. You can further define that a parameter shall be read from the incoming message object or define a jsonata expression.
 
 JSON parameters may define a sample structure. You can set this as the value by clicking the corresponding button - either with only the required keys (set required) or with all keys (set default).
 
@@ -37,6 +37,6 @@ If the API requires an authentification token you can log in using the standard 
 
 ## Sample flow
 
-There is a sample flow demonstrating how to configurate the node.
+You can find a sample flow in the node red imports where you can see some examples on how to configure the node.
 
 ![Example](https://gitlab.com/2WeltenChris/openapi-red/raw/master/examples/examples.png?raw=true "Example Node")
