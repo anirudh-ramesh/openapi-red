@@ -53,11 +53,18 @@ module.exports = function(RED) {
     let newApiList = {}
     Swagger(decodedUrl).then( (client) => {
       let paths = client.spec.paths;
+      console.log(paths)
       Object.keys(paths).forEach( (pathKey) => {
         let path = paths[pathKey];
         Object.keys(path).forEach( (operationKey) => {
             let operation = path[operationKey]
             let opId = operation.operationId
+            // fallback if no operation id exists
+            if (!opId) {
+              opId = operationKey + pathKey
+              operation.operationId = opId
+            }
+            
             for ( tag of operation.tags) {
               if (!newApiList[tag]) newApiList[tag] =  {}
               operation.path = pathKey

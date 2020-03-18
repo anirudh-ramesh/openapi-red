@@ -51,8 +51,11 @@
     $("#node-input-parameters-container").empty()
     let api = $('#node-input-api').val()
     let operation = $('#node-input-operation').val()
-
-    if (api && operation) {
+    // jQuery val() can return the value undefined as a string
+    if (api === "undefined" || operation === "undefined")  {
+      $('.inputUrl .red-ui-typedInput-container').addClass( "error")
+      $('.errorUrl').html('Error in creating API List. Api or Operation value is "undefined"')
+    } else if (api && operation) {
       let parameterList = apiList[api][operation].parameters
       if (parameterList) {
         for (let param of parameterList) {
@@ -264,6 +267,7 @@
 
     $('#node-input-createOpenApi-ApiFromUrl').on("click", function() {
       createApiList(node, apiList).then( (value) => {
+        console.log(value)
         apiList = value
         createAPISelector(node, apiList)
         createOperationSelector(node, apiList)
