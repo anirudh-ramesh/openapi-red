@@ -8,8 +8,7 @@ module.exports = function(RED) {
     node.on('input', function(msg) {
       let openApiUrl = config.openApiUrl
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
-      let operationId = config.operation
-      if (msg.openApi && msg.openApi.operation) operationId = msg.openApi.operation
+     
       let parameters = {}
       if (msg.openApi && msg.openApi.parameters) {
         parameters = msg.openApi.parameters
@@ -20,14 +19,28 @@ module.exports = function(RED) {
           if (param.isActive) parameters[param.name] = evaluatedInput
         }
       }
-      
+
+      // preferred use operationId. If not available use pathname + method
+      let operationId, pathName, method
+      if (config.operationData.withoutOriginalOpId) {
+        pathName = config.operationData.pathName
+        method = config.operationData.method
+      } else {
+        operationId = config.operation
+      }
+
       Swagger(openApiUrl).then( (client) => {
-        client.execute({ operationId, parameters,
-          // if available put token for auth
-          requestInterceptor: (req) => {
-            if (msg.openApiToken) req.headers['Authorization'] = 'Bearer ' + msg.openApiToken
-          }
-        }).then( (res) => {
+        client.execute({ 
+          operationId: operationId, 
+          pathName: config.operationData.pathName,
+          method: config.operationData.method,
+          parameters,
+         // if available put token for auth
+         requestInterceptor: (req) => {
+          if (msg.openApiToken) req.headers['Authorization'] = 'Bearer ' + msg.openApiToken
+        }
+        })
+        .then( (res) => {
           msg.payload = res
           node.send(msg)
         }).catch( (e) => {
@@ -53,7 +66,6 @@ module.exports = function(RED) {
     let newApiList = {}
     Swagger(decodedUrl).then( (client) => {
       let paths = client.spec.paths;
-      console.log(paths)
       Object.keys(paths).forEach( (pathKey) => {
         let path = paths[pathKey];
         Object.keys(path).forEach( (operationKey) => {
@@ -63,6 +75,9 @@ module.exports = function(RED) {
             if (!opId) {
               opId = operationKey + pathKey
               operation.operationId = opId
+              operation.withoutOriginalOpId = true
+              operation.pathName = pathKey
+              operation.method = operationKey
             }
             
             for ( tag of operation.tags) {

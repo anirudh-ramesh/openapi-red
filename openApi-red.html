@@ -88,7 +88,7 @@
     if (!propList) propList = 'No json parameter keys stated!'
     propList = '<div style="display: none" class="' + elementId + '-json-keys"><div class="json-key">' + propList + '</div></div>'
     listButton = '<div><button type="button" id="' + elementId + '_parameterList' + '" class="btn">show keys</button></div>'
-    // havev to undone any click events before or else it would be added and triggered multiple times
+    // have to undone any click events before or else it would be added and triggered multiple times
     $(document).off('click', '#'+ elementId + '_parameterList').on('click', '#'+ elementId + '_parameterList', function(){
       $('.' + elementId + '-json-keys').toggle()
       if ($(this).text() === 'show keys') $(this).text('hide keys')
@@ -121,18 +121,22 @@
     }
   }
 
-  function setOperationInfo (apiList) {
+  function setOperationInfo(node, apiList) {
     let api = $('#node-input-api').val()
     let operation = $('#node-input-operation').val()
 
     if (api && operation && objectHasValues(apiList)) {
-      let paramDetails = apiList[api][operation]
-      let description = paramDetails.description
-      $("#operation-info").attr('paramName', paramDetails.summary)
+      let operationDetails = apiList[api][operation]
+      let description = operationDetails.description
+      node.operationData.withoutOriginalOpId = operationDetails.withoutOriginalOpId
+      node.operationData.pathName = operationDetails.pathName
+      node.operationData.method = operationDetails.method
+
+      $("#operation-info").attr('paramName', operationDetails.summary)
       if (!description) description = 'No Description'
         $('#operation-info').attr('title', description)
-        let text = paramDetails.operationId
-      if (!paramDetails.parameters) text = text + '<span style="color: red;"> - No parameters found - </span>'
+        let text = operationDetails.operationId
+      if (!operationDetails.parameters) text = text + '<span style="color: red;"> - No parameters found - </span>'
         $('#operation-info').html(text)
     } else {
         $("#operation-info").attr('title', '')
@@ -148,7 +152,7 @@
       openApiUrl: {value:""},
       api: {value:""},
       operation: {value: ""},
-      operationName: {value: ""},
+      operationData: {value: {}},
       parameters: { value: {}, validate:function(v) { 
         let isValid = true
         for (let parameter in this.parameters) {
@@ -163,7 +167,7 @@
     icon: "white-globe.png",
     label: function() {
         if (this.name) return this.name
-        else if (this.operationName) return this.operationName
+        else if (this.operationData.name) return this.operationData.name
         else return "openApi client";
     },
     oneditprepare: function() {
@@ -213,10 +217,9 @@
         // third column
         // param type or if json build list and input
         let elementId = "OpenAPI_Parameter_" + i
-        if (param.type) {
+        if (param.type && param.type !== 'body') {
             $('<div class="paramType">' + param.type + '</div>').appendTo(row)
-        } else if (param.name === 'Json Request Body' || param.name === 'body') {
-          // TODO bug key anzeigen, nur beim öffnen?
+        } else if (param.name === 'Json Request Body' || param.name === 'body' || param.type === body) {
             let jsonParam = createJsonParameterList(param.schema, elementId)
             $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
         }
@@ -232,11 +235,6 @@
           buildArraySelector.appendTo(row)
         } else {
           inputElement.appendTo(row);
-          // if (param.type === 'boolean') $("#" + elementId).typedInput({types: ['bool', 'msg', 'flow', 'global']})
-          // else if (param.type === 'integer') $("#" + elementId).typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
-          // else if (param.name === 'Json Request Body' || param.name === 'body') $("#" + elementId).typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
-          // else $("#" + elementId).typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
-          
           if (param.type === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
           else if (param.type === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
           else if (param.name === 'Json Request Body' || param.name === 'body') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
@@ -261,13 +259,12 @@
       if (!openingNode && objectHasValues(apiList)) {
         node.parameters = {}
         createParameterList(node, apiList)
-        setOperationInfo(apiList)
+        setOperationInfo(node, apiList)
       }
     })
 
     $('#node-input-createOpenApi-ApiFromUrl').on("click", function() {
       createApiList(node, apiList).then( (value) => {
-        console.log(value)
         apiList = value
         createAPISelector(node, apiList)
         createOperationSelector(node, apiList)
@@ -281,15 +278,16 @@
         createAPISelector(node, apiList)
         createOperationSelector(node, apiList)
         createParameterList(node, apiList)
-        setOperationInfo(apiList)
+        setOperationInfo(node, apiList)
       }).catch( (e) => setUrlInputError(e))
     }
     openingNode = false
   },
   oneditsave: function() {
     let node = this
-    node.operationName = $('#operation-info').attr('paramName')
-    
+    // must be set here, else it won't work on first build
+    node.operationData.name = $('#operation-info').attr('paramName')
+
     $('#node-input-parameters-container').editableList('items').each(function(i) {
       let paramActivation = $(this).find('.paramChecked').prop('checked')
       let paramName = $(this).attr('param_in_name')
@@ -345,7 +343,6 @@
 
 <script type="text/html" data-help-name="openApi-red">
     <p>Use OpenAPI / Swagger with Node-Red.</p>
-    
     <h3>Inputs</h3>
         <dl class="message-properties">
             <dt>Name
