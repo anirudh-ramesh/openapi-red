@@ -80,6 +80,8 @@ module.exports = function(RED) {
               operation.method = operationKey
             }
             
+            // default if no array tag exists
+            if (operation.tags.constructor !== Array || operation.tags.length === 0) operation.tags = ['default']
             for ( tag of operation.tags) {
               if (!newApiList[tag]) newApiList[tag] =  {}
               operation.path = pathKey
