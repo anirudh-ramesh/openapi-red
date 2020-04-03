@@ -1,6 +1,6 @@
 {
   "name": "openapi-red",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Open API (Swagger) client for node-red ",
   "author": "Carl Lohrmann GmbH",
   "contributors": [
@@ -19,6 +19,10 @@
     "open",
     "api"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/2WeltenChris/openApi-red.git"
+  },
   "license": "MIT",
   "node-red": {
     "nodes": {
