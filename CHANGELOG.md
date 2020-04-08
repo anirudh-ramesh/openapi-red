@@ -1,8 +1,8 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
-**Version 0.1.3**
+**Version 0.1.4**
 
-- Bugfix identify parameter type and source
+- Bugfix: Identification of parameter type and source
 
 **Version 0.1.3**
 
