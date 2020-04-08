@@ -69,20 +69,22 @@
     let jsonInputDefault = {}
     let jsonInputRequired = {}
     let propList = '' 
-    for (let prop in schema.properties) {
-      let required = (Array.isArray(schema.required) && schema.required.includes(prop))
-      let requiredStyle = ''
-      let requiredNote = ''
-      if (required) {
-          requiredStyle = '<span class="paramIsRequired">*</span>'
-          requiredNote = '- required - '
-          jsonInputRequired[prop] = requiredNote + schema.properties[prop].type
+    if (schema.properties) {
+      for (let prop in schema.properties) {
+        let required = (Array.isArray(schema.required) && schema.required.includes(prop))
+        let requiredStyle = ''
+        let requiredNote = ''
+        if (required) {
+            requiredStyle = '<span class="paramIsRequired">*</span>'
+            requiredNote = '- required - '
+            jsonInputRequired[prop] = requiredNote + schema.properties[prop].type
+        }
+        jsonInputDefault[prop] = requiredNote + schema.properties[prop].type
+        let description =  schema.properties[prop].description
+        // Title prop has problems with ""
+        if (description) description = description.replace(/"/g, "&quot;")
+        propList = propList + '<div title="Description: ' + description + '">' + prop +  requiredStyle + '</div>'
       }
-      jsonInputDefault[prop] = requiredNote + schema.properties[prop].type
-      let description =  schema.properties[prop].description
-      // Title prop has problems with ""
-      if (description) description = description.replace(/"/g, "&quot;")
-      propList = propList + '<div title="Description: ' + description + '">' + prop +  requiredStyle + '</div>'
     }
     let listButton = ''
     if (!propList) propList = 'No json parameter keys stated!'
@@ -217,27 +219,34 @@
         // third column
         // param type or if json build list and input
         let elementId = "OpenAPI_Parameter_" + i
-        if (param.type && param.type !== 'body') {
-            $('<div class="paramType">' + param.type + '</div>').appendTo(row)
-        } else if (param.name === 'Json Request Body' || param.name === 'body' || param.type === body) {
+        let parameterType = param.type
+        if (!parameterType && param.schema && param.schema.type) parameterType = param.schema.type
+        if (!parameterType) parameterType = 'no type found'
+
+        if (param.name !== 'Json Request Body' && parameterType !== 'body' && parameterType !== 'object') {
+            $('<div class="paramType">' + parameterType + '</div>').appendTo(row)
+        } else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body') {
             let jsonParam = createJsonParameterList(param.schema, elementId)
             $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
-        }
+        } 
       
         // fourth column
         // input element
         let inputElement = $('<input/>', { class: "node-input-parameter paramValue", id: elementId, type: "text"})
-        // if array and selection items are available we use them. Otherwise it become a normal input field
-        if (param.type === 'array' && param.items && param.items.enum && param.items.enum.length > 0) {
+        // if selection items are available we use them. Otherwise it become a normal input field (param.type is not neccessarily 'array')
+        let arraySource
+        if (param.items && param.items.enum && param.items.enum.length > 0) arraySource = param.items.enum
+        else if (param.schema && param.schema.enum && param.schema.enum.length > 0) arraySource = param.schema.enum
+        if (arraySource) {
           let buildArraySelector = $('<select type="text" class="node-input-parameter paramValue" "id=' + elementId + '"><option value=""></option></select>')
-          param.items.enum.forEach( (i) => buildArraySelector.append('<option value=' + i + '>' + i + '</option>')); 
+          arraySource.forEach( (i) => buildArraySelector.append('<option value=' + i + '>' + i + '</option>')); 
           if (savedParameterValues) buildArraySelector.val(savedParameterValues.value)
           buildArraySelector.appendTo(row)
         } else {
           inputElement.appendTo(row);
-          if (param.type === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
-          else if (param.type === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
-          else if (param.name === 'Json Request Body' || param.name === 'body') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
+          if (parameterType === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
+          else if (parameterType === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
+          else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
           else inputElement.typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
           
           if (savedParameterValues) {

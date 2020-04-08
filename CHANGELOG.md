@@ -2,6 +2,10 @@
 
 **Version 0.1.3**
 
+- Bugfix identify parameter type and source
+
+**Version 0.1.3**
+
 - Operations without a tag will be placed in default
 
 **Version 0.1.2**
