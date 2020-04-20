@@ -1,5 +1,9 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 0.1.5**
+
+- Error notification and stop flow if required input is missing
+
 **Version 0.1.4**
 
 - Bugfix: Identification of parameter type and source

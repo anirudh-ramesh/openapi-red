@@ -16,10 +16,11 @@ module.exports = function(RED) {
         for (let p in config.parameters) {
           let param = config.parameters[p]
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
+          // can't check if (evaluatedInput) due to values false, 0, etc.
+          if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
           if (param.isActive) parameters[param.name] = evaluatedInput
         }
       }
-
       // preferred use operationId. If not available use pathname + method
       let operationId, pathName, method
       if (config.operationData.withoutOriginalOpId) {
