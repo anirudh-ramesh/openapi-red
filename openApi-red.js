@@ -10,6 +10,7 @@ module.exports = function(RED) {
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
      
       let parameters = {}
+      let options = {}
       if (msg.openApi && msg.openApi.parameters) {
         parameters = msg.openApi.parameters
       } else {
@@ -18,7 +19,13 @@ module.exports = function(RED) {
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
           // can't check if (evaluatedInput) due to values false, 0, etc.
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
-          if (param.isActive) parameters[param.name] = evaluatedInput
+          if (param.isActive && !param.name === 'Request Body') parameters[param.name] = evaluatedInput
+          if (param.isActive && param.name === 'Request Body') options = {
+            'requestBody' : {
+              evaluatedInput
+            }
+          }
+
         }
       }
       // preferred use operationId. If not available use pathname + method
@@ -40,6 +47,9 @@ module.exports = function(RED) {
          requestInterceptor: (req) => {
           if (msg.openApiToken) req.headers['Authorization'] = 'Bearer ' + msg.openApiToken
         }
+        },{
+          // options object (request body for openAPI 3)
+          options
         })
         .then( (res) => {
           msg.payload = res

@@ -56,11 +56,35 @@
       $('.inputUrl .red-ui-typedInput-container').addClass( "error")
       $('.errorUrl').html('Error in creating API List. Api or Operation value is "undefined"')
     } else if (api && operation) {
-      let parameterList = apiList[api][operation].parameters
+      let operationData = apiList[api][operation]
+      let parameterList = operationData.parameters
+      // openApi 3 new body style with selection // Warning: Experimental
+      if (!parameterList && operationData.requestBody && operationData.requestBody.content) {
+        $('.requestBody').css('display','initial')
+        $('#node-input-requestBody').empty().append('<option selected="selected" value=""></option>');
+        let requestBodies = operationData.requestBody.content
+        Object.keys(requestBodies).forEach( (b) => $('#node-input-requestBody').append(`<option value="${b}">${b}</option>`) )
+        if (node.requestBody) $('#node-input-requestBody').val(node.requestBody)
+
+        if (requestBodies[node.requestBody]) {
+          parameterList = [{
+          name: "Request body",
+          in: "",
+          schema:  requestBodies[node.requestBody].schema,
+          required: operationData.requestBody.required
+          }]
+        } 
+      } else {
+        $('.requestBody').css('display','none')
+      }
+
       if (parameterList) {
         for (let param of parameterList) {
           $("#node-input-parameters-container").editableList('addItem', param)
         }
+      } else {
+        $('.inputUrl .red-ui-typedInput-container').addClass( "error")
+        $('.errorUrl').html('No parameters found')
       }
     }
   }
@@ -105,8 +129,11 @@
   function createJsonInputButton(elementId, jsonValues, name) {
     if (objectHasValues(jsonValues)) {
       let button = '<div><button type="button" id="' + elementId + '_' + name + '" class="btn">set ' + name + '</button></div>'
-      $(document).on("click", "#"+ elementId + '_' + name, function(){ 
-        let currentValues = $("#" + elementId).val()
+      
+      // remove any event handler for this element first (parameter changed, other nodes, ...)
+      $(document).off("click", '#' + elementId + '_' + name)
+      $(document).on("click", '#' + elementId + '_' + name, function(){ 
+        let currentValues = $('#' + elementId).val()
         let setValues = {}
         if (currentValues.length > 0) {
           currentValues = JSON.parse(currentValues)
@@ -130,16 +157,14 @@
     if (api && operation && objectHasValues(apiList)) {
       let operationDetails = apiList[api][operation]
       let description = operationDetails.description
+      // set fallback options if no operation id is set
       node.operationData.withoutOriginalOpId = operationDetails.withoutOriginalOpId
       node.operationData.pathName = operationDetails.pathName
       node.operationData.method = operationDetails.method
-
       $("#operation-info").attr('paramName', operationDetails.summary)
       if (!description) description = 'No Description'
         $('#operation-info').attr('title', description)
-        let text = operationDetails.operationId
-      if (!operationDetails.parameters) text = text + '<span style="color: red;"> - No parameters found - </span>'
-        $('#operation-info').html(text)
+        $('#operation-info').html(operationDetails.operationId)
     } else {
         $("#operation-info").attr('title', '')
         $('#operation-info').html(' ')
@@ -162,7 +187,8 @@
           if (param.required && param.value.toString() === '') isValid = false
         }
         return isValid
-      }}
+      }},
+      requestBody: {value: ""}
     },
     inputs:1,
     outputs:1,
@@ -175,7 +201,8 @@
     oneditprepare: function() {
       let node = this
       let openingNode = true
-      // can't save api list because it can be some MB and will cause an flow overhead -> can't deploy anymore
+      // can't save the api list because it can be some MB and will cause an flow overhead -> can't deploy anymore
+      // therefore we have to load it when opening the node
       let apiList = {}
       $('#node-input-parameters-container').css('min-height','300px').css('min-width','650px').editableList({
       addButton: false,
@@ -198,7 +225,6 @@
             'isActive': false
           }
         }
-
         // first column
         // we build a checkbox to check wanted parameters (parameter has default values)
         let paramIsActive = $('<input/>', { class: "node-input-parameter paramChecked", type: "checkbox"}).appendTo(row)
@@ -225,7 +251,7 @@
 
         if (param.name !== 'Json Request Body' && parameterType !== 'body' && parameterType !== 'object') {
             $('<div class="paramType">' + parameterType + '</div>').appendTo(row)
-        } else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body') {
+        } else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') {
             let jsonParam = createJsonParameterList(param.schema, elementId)
             $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
         } 
@@ -246,7 +272,7 @@
           inputElement.appendTo(row);
           if (parameterType === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
           else if (parameterType === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
-          else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
+          else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
           else inputElement.typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
           
           if (savedParameterValues) {
@@ -267,6 +293,15 @@
     $('#node-input-operation').change(function(){
       if (!openingNode && objectHasValues(apiList)) {
         node.parameters = {}
+        createParameterList(node, apiList)
+        setOperationInfo(node, apiList)
+      }
+    })
+
+    $('#node-input-requestBody').change(function(){
+      if (!openingNode && objectHasValues(apiList)) {
+        node.parameters = {}
+        node.requestBody = $('#node-input-requestBody').val() // we save it first then we can use the standard functions
         createParameterList(node, apiList)
         setOperationInfo(node, apiList)
       }
@@ -338,6 +373,13 @@
         </select>
         <span id="operation-info"> - </span>
     </div>
+    <div class="form-row requestBody">
+      <label for="node-input-requestBody"><i class="icon-tag"></i> Request Body</label>
+      <select type="text" id="node-input-requestBody" >
+          <option value=""></option>
+      </select>
+      <span>Warning: Experimental!</span>
+  </div>
     <hr>
     <!-- The parameters-list -->
     <div class="node-row-parameters">
@@ -411,4 +453,5 @@
   }
   #openApi-red input.node-input-parameter.paramChecked { width: 45px !important;}
   #openApi-red .red-ui-typedInput-container { width: calc(100% - 315px) !important; }
+  .requestBody { display: none; }
 </style>
