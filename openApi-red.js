@@ -19,7 +19,7 @@ module.exports = function(RED) {
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
           // can't check if (evaluatedInput) due to values false, 0, etc.
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
-          if (param.isActive && !param.name === 'Request Body') parameters[param.name] = evaluatedInput
+          if (param.isActive && param.name !== 'Request Body') parameters[param.name] = evaluatedInput
           if (param.isActive && param.name === 'Request Body') options = {
             'requestBody' : {
               evaluatedInput
