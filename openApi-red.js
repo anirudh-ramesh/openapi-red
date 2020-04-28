@@ -17,7 +17,9 @@ module.exports = function(RED) {
         for (let p in config.parameters) {
           let param = config.parameters[p]
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
-          // can't check if (evaluatedInput) due to values false, 0, etc.
+          // query input can't be object. Therefore stringify!
+          if (typeof evaluatedInput === 'object' && param.in === 'query') evaluatedInput = JSON.stringify(evaluatedInput)
+          // can't use 'if (evaluatedInput)' due to values false and 0
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
           if (param.isActive && param.name !== 'Request Body') parameters[param.name] = evaluatedInput
           if (param.isActive && param.name === 'Request Body') options = {
