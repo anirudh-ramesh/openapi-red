@@ -1,5 +1,10 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 0.1.7**
+
+- Hide value input for parameter if not active
+- Minor code changes
+
 **Version 0.1.61**
 
 - Bugfix
