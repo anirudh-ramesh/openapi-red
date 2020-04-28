@@ -204,7 +204,7 @@
       // can't save the api list because it can be some MB and will cause an flow overhead -> can't deploy anymore
       // therefore we have to load it when opening the node
       let apiList = {}
-      $('#node-input-parameters-container').css('min-height','300px').css('min-width','650px').editableList({
+      $('#node-input-parameters-container').editableList({
       addButton: false,
       addItem: function(row, i, param) {
         row.css({'display': 'flex', 'align-items': 'center'})
@@ -279,7 +279,9 @@
             inputElement.typedInput('value', savedParameterValues.value)
             inputElement.typedInput('type', savedParameterValues.inputType)
           }
-
+          // hide input if not checked
+          if (!paramIsActive.prop('checked')) $('#' + elementId).parent().find('[class*="red-ui-typedInput-container"]').css('visibility', 'hidden')
+          
           inputElement.appendTo(row);
         }
       }
@@ -304,6 +306,16 @@
         node.requestBody = $('#node-input-requestBody').val() // we save it first then we can use the standard functions
         createParameterList(node, apiList)
         setOperationInfo(node, apiList)
+      }
+    })
+    $(document).on("change", 'input.paramChecked', function(){ 
+      if (!openingNode) {
+        if ($(this).prop('checked')){
+          $(this).parent().find('[class*="red-ui-typedInput-container"]').css('visibility', 'visible')
+        } else {
+          $(this).parent().find('[class*="red-ui-typedInput-container"]').css('visibility', 'hidden')
+        }
+        
       }
     })
 
@@ -442,16 +454,20 @@
 
 <style>
   #openApi-red .error { border:2px solid red !important; }
-  #openApi-red .errorUrl, #openApi-red .paramIsRequired { color: red; font-weight: bold;}
-  #openApi-red .paramName { 
-    /* width: 25%; */
-    min-width: 170px;
-   }
-  #openApi-red .paramType { 
-    /* width: 15%; */
-    min-width: 100px;
+  #openApi-red .errorUrl, #openApi-red .paramIsRequired { 
+    color: red; 
+    font-weight: bold;
   }
+  #openApi-red #node-input-parameters-container {
+    min-height: 300px;
+    height: 600px;
+    min-width: 650px;
+  }
+
+  #openApi-red .paramName { min-width: 170px; }
+  #openApi-red .paramType { min-width: 100px; }
   #openApi-red input.node-input-parameter.paramChecked { width: 45px !important;}
   #openApi-red .red-ui-typedInput-container { width: calc(100% - 315px) !important; }
   .requestBody { display: none; }
+  
 </style>
