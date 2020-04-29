@@ -34,6 +34,12 @@ JSON parameters may define a sample structure. You can set this as the value by 
 
 If the API requires an authentification token you can log in using the standard `http-request` node of Node-RED. The JWT token you get as a response must then be put into `msg.openApiToken` to be automatically placed in the request-header as bearer authentification.
 
+## 5. Error handling
+
+You can choose how to handle a returning server error. Either the flow moves on normally (standard), you have a separate output or it throws an expection which can be catched by the standard 'catch' node (usefull for many nodes with the same error handling).
+You find also an example in the sample flow.
+
+![Error handling](https://gitlab.com/2WeltenChris/openapi-red/raw/master/examples/error_handling.png?raw=true "Error handling")
 
 ## Sample flow
 

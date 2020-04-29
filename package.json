@@ -1,6 +1,6 @@
 {
   "name": "openapi-red",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Open API (Swagger) client for node-red ",
   "author": "Carl Lohrmann GmbH",
   "contributors": [

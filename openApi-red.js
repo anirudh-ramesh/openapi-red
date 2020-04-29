@@ -8,9 +8,9 @@ module.exports = function(RED) {
     node.on('input', function(msg) {
       let openApiUrl = config.openApiUrl
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
-     
       let parameters = {}
       let options = {}
+      
       if (msg.openApi && msg.openApi.parameters) {
         parameters = msg.openApi.parameters
       } else {
@@ -18,7 +18,10 @@ module.exports = function(RED) {
           let param = config.parameters[p]
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
           // query input can't be object. Therefore stringify!
-          if (typeof evaluatedInput === 'object' && param.in === 'query') evaluatedInput = JSON.stringify(evaluatedInput)
+          if (typeof evaluatedInput === 'object' && param.in === 'query') {
+            evaluatedInput = JSON.stringify(evaluatedInput)
+            console.log(evaluatedInput)
+          }
           // can't use 'if (evaluatedInput)' due to values false and 0
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
           if (param.isActive && param.name !== 'Request Body') parameters[param.name] = evaluatedInput
@@ -27,7 +30,6 @@ module.exports = function(RED) {
               evaluatedInput
             }
           }
-
         }
       }
       // preferred use operationId. If not available use pathname + method
@@ -58,11 +60,15 @@ module.exports = function(RED) {
           node.send(msg)
         }).catch( (e) => {
           msg.payload = e
-          node.send(msg)
+          if (config.errorHandling === 'other output') node.send([null, msg])
+          else if (config.errorHandling === 'throw exception') node.error(e.message, msg)
+          else node.send(msg)
         })
       }).catch( e => {
         msg.payload = e
-        node.send(msg)
+        if (config.errorHandling === 'other output') node.send([null, msg])
+        else if (config.errorHandling === 'throw exception') node.error(e.message, msg)
+        else node.send(msg)
       })
     })
   }

@@ -4,23 +4,23 @@
     apiList = {}
     let openApiUrl = encodeURI($('#node-input-openApiUrl').val())
     $('.inputUrl .red-ui-typedInput-container').removeClass( "error")
-    $('.errorUrl').html('')
+    $('.nodeError').html('')
     // server call
     return $.get( "/getNewOpenApiInfo?openApiUrl=" + openApiUrl, function(response, status) {
       // return error Msg from openApi
-      if (typeof response === "string") setUrlInputError(response) 
+      if (typeof response === "string") showError(response) 
       else return response
     })
     .fail(function(e) {
-      setUrlInputError(e)
+      showError(e)
     })
   }
 
-  function setUrlInputError(message) {
+  function showError(message) {
     $('.inputUrl .red-ui-typedInput-container').addClass( "error")
     $('#node-input-api').val("")
     $('#node-input-operation').val("")
-    $('.errorUrl').html(message)
+    $('.nodeError').html(message)
   }
   
   function objectHasValues(object) {
@@ -54,7 +54,7 @@
     // jQuery val() can return the value undefined as a string
     if (api === "undefined" || operation === "undefined")  {
       $('.inputUrl .red-ui-typedInput-container').addClass( "error")
-      $('.errorUrl').html('Error in creating API List. Api or Operation value is "undefined"')
+      $('.nodeError').html('Error in creating API List. Api or Operation value is "undefined"')
     } else if (api && operation) {
       let operationData = apiList[api][operation]
       let parameterList = operationData.parameters
@@ -84,7 +84,7 @@
         }
       } else {
         $('.inputUrl .red-ui-typedInput-container').addClass( "error")
-        $('.errorUrl').html('No parameters found')
+        $('.nodeError').html('No parameters found')
       }
     }
   }
@@ -171,15 +171,94 @@
     }
   }
 
+  function addNewRow(row, i, param, node) {
+    // add custom attribute to find parameter with in and name (can't be id, because of blanks (for example Json Request Body))
+    // if a parameter has a identical name (depreceated) it can't have the same 'in' (query, path, header,...)
+    let parameterName = param.in + ' ' + param.name
+    row.attr('param_in_name', parameterName)
+
+    let savedParameterValues 
+    if ( objectHasValues(node.parameters[parameterName])) savedParameterValues = node.parameters[parameterName]
+    // create default object
+    else { 
+      node.parameters[parameterName] = {
+        'name': param.name,
+        'in': param.in,
+        'required': param.required,
+        'value': '',
+        'isActive': false
+      }
+    }
+    // first column
+    // we build a checkbox to check wanted parameters (parameter has default values)
+    let paramIsActive = $('<input/>', { class: "node-input-parameter paramChecked", type: "checkbox"}).appendTo(row)
+    if (param.required) paramIsActive.prop({'checked' : true, 'disabled': true })
+    else if (savedParameterValues) paramIsActive.prop('checked', savedParameterValues.isActive) 
+
+    // second column
+    // param name and description
+    let secondColumnInfo = param.name
+    if (param.required) secondColumnInfo += '<span class="paramIsRequired">*</span>'
+    let description = param.description
+    if (description) description = description.replace(/"/g, "&quot;") // title object has problems with '"'
+    else description = 'No description found!'
+    if (param.type === 'array' && !(param.items && param.items.enum && param.items.enum.length > 0) )  description += "\nAttention: No Array selection found! You have to enter it manuelly!"
+    $('<div class="paramName" title="Description: ' + description  + '">' + secondColumnInfo + '</div>').appendTo(row)
+
+    // third column
+    // param type or if json build list and input
+    let elementId = "OpenAPI_Parameter_" + i
+    let parameterType = param.type
+    if (!parameterType && param.schema && param.schema.type) parameterType = param.schema.type
+    if (!parameterType) parameterType = 'no type found'
+
+    if (param.name !== 'Json Request Body' && parameterType !== 'body' && parameterType !== 'object') {
+        $('<div class="paramType">' + parameterType + '</div>').appendTo(row)
+    } else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') {
+        let jsonParam = createJsonParameterList(param.schema, elementId)
+        $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
+    } 
+  
+    // fourth column
+    // input element
+    let inputElement = $('<input/>', { class: "node-input-parameter paramValue", id: elementId, type: "text"})
+    // if selection items are available we use them. Otherwise it become a normal input field (param.type is not neccessarily 'array')
+    let arraySource
+    if (param.items && param.items.enum && param.items.enum.length > 0) arraySource = param.items.enum
+    else if (param.schema && param.schema.enum && param.schema.enum.length > 0) arraySource = param.schema.enum
+    if (arraySource) {
+      let buildArraySelector = $('<select type="text" class="node-input-parameter paramValue" "id=' + elementId + '"><option value=""></option></select>')
+      arraySource.forEach( (i) => buildArraySelector.append('<option value=' + i + '>' + i + '</option>')); 
+      if (savedParameterValues) buildArraySelector.val(savedParameterValues.value)
+      buildArraySelector.appendTo(row)
+    } else {
+      inputElement.appendTo(row);
+      if (parameterType === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
+      else if (parameterType === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
+      else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
+      else inputElement.typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
+      
+      if (savedParameterValues) {
+        inputElement.typedInput('value', savedParameterValues.value)
+        inputElement.typedInput('type', savedParameterValues.inputType)
+      }
+      // hide input if not checked
+      if (!paramIsActive.prop('checked')) $('#' + elementId).parent().find('[class*="red-ui-typedInput-container"]').css('visibility', 'hidden')
+      
+      inputElement.appendTo(row);
+    }
+  }
+
   RED.nodes.registerType('openApi-red', {
     category: 'network',
     color: '#b197ff',
     defaults: {
-      name: {value:""},
-      openApiUrl: {value:""},
-      api: {value:""},
-      operation: {value: ""},
+      name: {value: ''},
+      openApiUrl: {value: ''},
+      api: {value: ''},
+      operation: {value: ''},
       operationData: {value: {}},
+      errorHandling: {value: ''},
       parameters: { value: {}, validate:function(v) { 
         let isValid = true
         for (let parameter in this.parameters) {
@@ -188,7 +267,8 @@
         }
         return isValid
       }},
-      requestBody: {value: ""}
+      requestBody: {value: ''},
+      outputs: {value: 1}
     },
     inputs:1,
     outputs:1,
@@ -206,85 +286,7 @@
       let apiList = {}
       $('#node-input-parameters-container').editableList({
       addButton: false,
-      addItem: function(row, i, param) {
-        row.css({'display': 'flex', 'align-items': 'center'})
-        // add custom attribute to find parameter with in and name (can't be id, because of blanks (for example Json Request Body))
-        // if a parameter has a identical name (depreceated) it can't have the same 'in' (query, path, header,...)
-        let parameterName = param.in + ' ' + param.name
-        row.attr('param_in_name', parameterName)
-
-        let savedParameterValues 
-        if ( objectHasValues(node.parameters[parameterName])) savedParameterValues = node.parameters[parameterName]
-        // create default object
-        else { 
-          node.parameters[parameterName] = {
-            'name': param.name,
-            'in': param.in,
-            'required': param.required,
-            'value': '',
-            'isActive': false
-          }
-        }
-        // first column
-        // we build a checkbox to check wanted parameters (parameter has default values)
-        let paramIsActive = $('<input/>', { class: "node-input-parameter paramChecked", type: "checkbox"}).appendTo(row)
-        if (param.required) paramIsActive.prop({'checked' : true, 'disabled': true })
-        else if (savedParameterValues) paramIsActive.prop('checked', savedParameterValues.isActive) 
-
-        // second column
-        // param name and description
-        let secondColumnInfo = param.name
-        if (param.required) secondColumnInfo += '<span class="paramIsRequired">*</span>'
-        let description = param.description
-        // title object has problems with '"'
-        if (description) description = description.replace(/"/g, "&quot;")
-        else description = 'No description found!'
-        if (param.type === 'array' && !(param.items && param.items.enum && param.items.enum.length > 0) )  description += "\nAttention: No Array selection found! You have to enter it manuelly!"
-        $('<div class="paramName" title="Description: ' + description  + '">' + secondColumnInfo + '</div>').appendTo(row)
-
-        // third column
-        // param type or if json build list and input
-        let elementId = "OpenAPI_Parameter_" + i
-        let parameterType = param.type
-        if (!parameterType && param.schema && param.schema.type) parameterType = param.schema.type
-        if (!parameterType) parameterType = 'no type found'
-
-        if (param.name !== 'Json Request Body' && parameterType !== 'body' && parameterType !== 'object') {
-            $('<div class="paramType">' + parameterType + '</div>').appendTo(row)
-        } else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') {
-            let jsonParam = createJsonParameterList(param.schema, elementId)
-            $('<div class="paramType">' + jsonParam.jsonButtonDefault + jsonParam.jsonButtonRequired + jsonParam.listButton + jsonParam.propList + '</div>').appendTo(row)
-        } 
-      
-        // fourth column
-        // input element
-        let inputElement = $('<input/>', { class: "node-input-parameter paramValue", id: elementId, type: "text"})
-        // if selection items are available we use them. Otherwise it become a normal input field (param.type is not neccessarily 'array')
-        let arraySource
-        if (param.items && param.items.enum && param.items.enum.length > 0) arraySource = param.items.enum
-        else if (param.schema && param.schema.enum && param.schema.enum.length > 0) arraySource = param.schema.enum
-        if (arraySource) {
-          let buildArraySelector = $('<select type="text" class="node-input-parameter paramValue" "id=' + elementId + '"><option value=""></option></select>')
-          arraySource.forEach( (i) => buildArraySelector.append('<option value=' + i + '>' + i + '</option>')); 
-          if (savedParameterValues) buildArraySelector.val(savedParameterValues.value)
-          buildArraySelector.appendTo(row)
-        } else {
-          inputElement.appendTo(row);
-          if (parameterType === 'boolean') inputElement.typedInput({types: ['bool', 'msg', 'flow', 'global']})
-          else if (parameterType === 'integer') inputElement.typedInput({types: ['num', 'jsonata', 'msg', 'flow', 'global']})
-          else if (param.name === 'Json Request Body' || param.name === 'body' || parameterType === 'body' || parameterType === 'object') inputElement.typedInput({types: ['json', 'jsonata', 'msg', 'flow', 'global']})
-          else inputElement.typedInput({types: ['str', 'json', 'jsonata', 'msg', 'flow', 'global']})
-          
-          if (savedParameterValues) {
-            inputElement.typedInput('value', savedParameterValues.value)
-            inputElement.typedInput('type', savedParameterValues.inputType)
-          }
-          // hide input if not checked
-          if (!paramIsActive.prop('checked')) $('#' + elementId).parent().find('[class*="red-ui-typedInput-container"]').css('visibility', 'hidden')
-          
-          inputElement.appendTo(row);
-        }
-      }
+      addItem: (row, i, param) => addNewRow(row, i, param, node) 
     })
 
     // Warning: Change can be triggered by opening the node!
@@ -324,7 +326,7 @@
         apiList = value
         createAPISelector(node, apiList)
         createOperationSelector(node, apiList)
-      }).catch( (e) => console.log("Error: " + e))
+      }).catch( (e) => showError(e))
     })
 
     // server call for building api is async therefore put this at the end to not trigger other events
@@ -335,15 +337,17 @@
         createOperationSelector(node, apiList)
         createParameterList(node, apiList)
         setOperationInfo(node, apiList)
-      }).catch( (e) => setUrlInputError(e))
+      }).catch( (e) => showError(e))
     }
+
+    // TODO: if more new fields build an update function
+    if (!node.errorHandling) node.errorHandling = ''
     openingNode = false
   },
   oneditsave: function() {
     let node = this
     // must be set here, else it won't work on first build
     node.operationData.name = $('#operation-info').attr('paramName')
-
     $('#node-input-parameters-container').editableList('items').each(function(i) {
       let paramActivation = $(this).find('.paramChecked').prop('checked')
       let paramName = $(this).attr('param_in_name')
@@ -355,6 +359,9 @@
       node.parameters[paramName].value = param.val()
       node.parameters[paramName].inputType = paramInputType
     })
+
+    if ($('#node-input-errorHandling').val() === 'other output') node.outputs = 2
+    else node.outputs = 1
   }
 })
 </script>
@@ -370,7 +377,15 @@
         <input type="text" id="node-input-openApiUrl">
         <button type="button" id="node-input-createOpenApi-ApiFromUrl" class="btn">read</button>
     </div>
-    <div class="errorUrl"></div>
+    <div class="form-row">
+      <label for="node-input-errorHandling"><i class="icon-tag"></i> Error handling</label>
+      <select type="text" id="node-input-errorHandling" >
+          <option value="">Standard</option>
+          <option value="other output">Other output</option>
+          <option value="throw exception">Throw an exception</option>
+      </select>
+    </div>
+    <div class="nodeError"></div>
     <hr>
     <div class="form-row">
         <label for="node-input-api"><i class="icon-tag"></i> API tag</label>
@@ -431,10 +446,8 @@
     
      <h3>Outputs</h3>
       <dl class="message-properties">
-        <dt>Payload
-          <span class="property-type">object</span>
-          <dd> Returns the complete OpenAPI object.
-          </dd>
+        <dt>Payload <span class="property-type">object</span>
+          <dd> Returns the complete OpenAPI object.</dd>
         </dt>
       </dl>
     
@@ -443,6 +456,17 @@
 
     <h3>Dynamic fields</h3>
     For using dynamic OpenApi URL, operation or parameter put those into msg.openApiUrl (string), msg.operation (operationId as string) and msg.parameters (object with key as parameter name). 
+
+    <h3>Error handling</h3>
+    This handles how to react if the server returns a http status of 4xx or 5xx.
+    <dl class="message-properties">
+      <dt>Standard  <span class="property-type">string</span> </dt>
+      <dd> The flow will move on normally so you can choose how to handle this within your flow.</dd>
+      <dt> Other output <span class="property-type">string</span></dt>
+      <dd> The flow will move on in a second output.</dd>
+      <dt> Throw exception <span class="property-type">string</span></dt>
+      <dd> The flow will throw an exception. This exception can be catched by the 'catch' node.</dd>
+    </dl>
 
     <h3>References</h3>
         <ul>
@@ -454,7 +478,7 @@
 
 <style>
   #openApi-red .error { border:2px solid red !important; }
-  #openApi-red .errorUrl, #openApi-red .paramIsRequired { 
+  #openApi-red .nodeError, #openApi-red .paramIsRequired { 
     color: red; 
     font-weight: bold;
   }
@@ -463,7 +487,10 @@
     height: 600px;
     min-width: 650px;
   }
-
+  #openApi-red .red-ui-editableList-item-content { 
+    display: flex;
+    align-items: center;
+  }
   #openApi-red .paramName { min-width: 170px; }
   #openApi-red .paramType { min-width: 100px; }
   #openApi-red input.node-input-parameter.paramChecked { width: 45px !important;}
