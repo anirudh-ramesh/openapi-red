@@ -38,9 +38,10 @@ If the API requires an authentification token you can log in using the standard 
 
 You can choose how to handle a returning server error. 
 
-Standard: The flow moves on normally. You have to handle an server error in your flow.
-Separate output: Your flow will take a different way.
-Throw an exception: Throws an node.error which can be catched by the standard 'catch' node (usefull for many nodes with the same error handling).
+
+* `Standard`: The flow moves on normally. You have to handle an server error in your flow.
+* `Separate output`: Your flow will take a different way.
+* `Throw an exception`: Throws an node.error which can be catched by the standard 'catch' node (usefull for many nodes with the same error handling).
 You find that example also in the sample flow.
 
 ![Error handling](https://gitlab.com/2WeltenChris/openapi-red/raw/master/examples/error_handling.png?raw=true "Error handling")
