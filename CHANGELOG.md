@@ -9,10 +9,6 @@
 - Hide value input for parameter if not active
 - Minor code changes
 
-**Version 0.1.61**
-
-- Bugfix
-
 **Version 0.1.6**
 
 - Bugfix input default values for objects. 
