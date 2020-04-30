@@ -36,8 +36,7 @@ If the API requires an authentification token you can log in using the standard 
 
 ## 5. Error handling
 
-You can choose how to handle a returning server error. 
-
+You can choose how to handle a returning server error. The last server response object will be placed in msg.response instead of msg.error. This ensures that all 3 ways react the same.
 
 * `Standard`: The flow moves on normally. You have to handle an server error in your flow.
 * `Separate output`: Your flow will take a different way.

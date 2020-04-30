@@ -1,5 +1,10 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 0.1.9**
+
+- Minor changes on error handling
+- Code changed to StandardJs code standard
+
 **Version 0.1.8**
 
 - Selectable error handling

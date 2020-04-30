@@ -458,7 +458,7 @@
     For using dynamic OpenApi URL, operation or parameter put those into msg.openApiUrl (string), msg.operation (operationId as string) and msg.parameters (object with key as parameter name). 
 
     <h3>Error handling</h3>
-    This handles how to react if the server returns a http status of 4xx or 5xx.
+    This handles how to react if the server returns a http status of 4xx or 5xx. You can find the last server response in msg.response.
     <dl class="message-properties">
       <dt>Standard  <span class="property-type">string</span> </dt>
       <dd> The flow will move on normally so you can choose how to handle this within your flow.</dd>
