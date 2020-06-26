@@ -4,7 +4,8 @@
   "description": "Open API (Swagger) client for node-red ",
   "author": "Carl Lohrmann GmbH",
   "contributors": [
-    "Sebastian Meier", "Christian Geiger"
+    "Sebastian Meier",
+    "Christian Geiger"
   ],
   "main": "openApi-red.js",
   "scripts": {
@@ -30,6 +31,6 @@
     }
   },
   "dependencies": {
-    "swagger-client": "^3.10.0"
+    "swagger-client": "^3.10.9"
   }
 }

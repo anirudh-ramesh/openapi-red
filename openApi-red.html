@@ -60,22 +60,27 @@
       let parameterList = operationData.parameters
       // openApi 3 new body style with selection // Warning: Experimental
       if (!parameterList && operationData.requestBody && operationData.requestBody.content) {
-        $('.requestBody').css('display','initial')
-        $('#node-input-requestBody').empty().append('<option selected="selected" value=""></option>');
+        $('.contentType').css('display','initial')
+        $('#node-input-contentType').empty().append('<option selected="selected" value=""></option>');
         let requestBodies = operationData.requestBody.content
-        Object.keys(requestBodies).forEach( (b) => $('#node-input-requestBody').append(`<option value="${b}">${b}</option>`) )
-        if (node.requestBody) $('#node-input-requestBody').val(node.requestBody)
+        Object.keys(requestBodies).forEach( (b) => $('#node-input-contentType').append(`<option value="${b}">${b}</option>`) )
+        if (node.contentType) $('#node-input-contentType').val(node.contentType)
 
-        if (requestBodies[node.requestBody]) {
+        if (requestBodies[node.contentType]) {
           parameterList = [{
           name: "Request body",
           in: "",
-          schema:  requestBodies[node.requestBody].schema,
+          schema:  requestBodies[node.contentType].schema,
           required: operationData.requestBody.required
           }]
         } 
       } else {
-        $('.requestBody').css('display','none')
+        // Content type is now needed since update 
+        $('#node-input-contentType').empty()
+          .append('<option value="application/json">application/json</option>')
+          .append('<option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>')
+          .append('<option value="multipart/form-data">multipart/form-data</option>')
+        if (node.contentType) $('#node-input-contentType').val(node.contentType)
       }
 
       if (parameterList) {
@@ -267,7 +272,7 @@
         }
         return isValid
       }},
-      requestBody: {value: ''},
+      contentType: {value: ''},
       outputs: {value: 1}
     },
     inputs:1,
@@ -302,10 +307,10 @@
       }
     })
 
-    $('#node-input-requestBody').change(function(){
+    $('#node-input-contentType').change(function(){
       if (!openingNode && objectHasValues(apiList)) {
         node.parameters = {}
-        node.requestBody = $('#node-input-requestBody').val() // we save it first then we can use the standard functions
+        node.contentType = $('#node-input-contentType').val() // we save it first then we can use the standard functions
         createParameterList(node, apiList)
         setOperationInfo(node, apiList)
       }
@@ -400,12 +405,11 @@
         </select>
         <span id="operation-info"> - </span>
     </div>
-    <div class="form-row requestBody">
-      <label for="node-input-requestBody"><i class="icon-tag"></i> Request Body</label>
-      <select type="text" id="node-input-requestBody" >
+    <div class="form-row contentType">
+      <label for="node-input-contentType"><i class="icon-tag"></i> Content Type</label>
+      <select type="text" id="node-input-contentType" >
           <option value=""></option>
       </select>
-      <span>Warning: Experimental!</span>
   </div>
     <hr>
     <!-- The parameters-list -->
@@ -495,6 +499,4 @@
   #openApi-red .paramType { min-width: 100px; }
   #openApi-red input.node-input-parameter.paramChecked { width: 45px !important;}
   #openApi-red .red-ui-typedInput-container { width: calc(100% - 315px) !important; }
-  .requestBody { display: none; }
-  
 </style>

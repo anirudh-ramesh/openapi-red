@@ -33,11 +33,14 @@ module.exports = function (RED) {
           // query input can't be object. Therefore stringify!
           if (typeof evaluatedInput === 'object' && param.in === 'query') {
             evaluatedInput = JSON.stringify(evaluatedInput)
-            console.log(evaluatedInput)
           }
           // can't use 'if (evaluatedInput)' due to values false and 0
-          if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) return node.error(`Required input for ${param.name} is missing.`)
-          if (param.isActive && param.name !== 'Request Body') parameters[param.name] = evaluatedInput
+          if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) {
+            return node.error(`Required input for ${param.name} is missing.`, msg)
+          }
+          if (param.isActive && param.name !== 'Request Body') {
+            parameters[param.name] = evaluatedInput
+          }
           if (param.isActive && param.name === 'Request Body') {
             options = {
               requestBody: {
@@ -55,13 +58,20 @@ module.exports = function (RED) {
       } else {
         operationId = config.operation
       }
+      // fallback if no content type can be found
+      let requestContentType = 'application/json'
+      if (config.requestBody) {
+        requestContentType = config.requestBody
+      }
 
+      // Start Swagger / OpenApi
       Swagger(openApiUrl).then((client) => {
         client.execute({
           operationId,
           pathName,
           method,
           parameters,
+          requestContentType,
           // if available put token for auth
           requestInterceptor: (req) => {
             if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
