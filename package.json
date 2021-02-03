@@ -34,5 +34,9 @@
   },
   "dependencies": {
     "swagger-client": "^3.10.9"
+  },
+  "devDependencies": {
+    "standard": "^16.0.3",
+    "svelte-integration-red": "^0.1.30"
   }
 }
