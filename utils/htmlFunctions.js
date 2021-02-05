@@ -1,7 +1,7 @@
 export async function getApiList(openApiUrl) {
   let url = encodeURI(openApiUrl)
   // server call
-  return $.get( "/getNewOpenApiInfo?openApiUrl=" + url, function(response, status) {
+  return $.get( "/getNewOpenApiInfo?openApiUrl=" + url, function(response) {
     return response
   })
   .fail(function(message) {
@@ -11,26 +11,6 @@ export async function getApiList(openApiUrl) {
 
 export function objectHasValues(object) {
   return (typeof object === 'object' && Object.keys(object).length > 0 && object.constructor === Object)
-}
-
-export function createAPISelector(node, apiList) {
-    $('#node-input-api').empty().append('<option selected="selected" value=""></option>');
-    $.each(apiList, function(apiKey, value) {
-        $("#node-input-api").append("<option value=" + apiKey + ">" + apiKey + "</option>");
-    })
-    $('#node-input-api').val(node.api)
-}
-
-export function createOperationSelector(node, apiList) {
-    $('#node-input-operation').empty().append('<option selected="selected" value=""></option>');
-    let api = $('#node-input-api').val()
-    if (!api) api = node.api
-    if (api !== "" && apiList[api] ) {
-      $.each(apiList[api], function(operation, value) {
-        $("#node-input-operation").append("<option value=" + value.operationId + ">" + value.summary + "</option>")
-      })
-    }
-    $('#node-input-operation').val(node.operation)
 }
 
 export function createParameterList(node, apiList) {
@@ -141,26 +121,26 @@ export function createJsonInputButton(elementId, jsonValues, name) {
   }
 }
 
-function setOperationInfo(node, apiList) {
-  let api = $('#node-input-api').val()
-  let operation = $('#node-input-operation').val()
+// function setOperationInfo(node, apiList) {
+//   let api = $('#node-input-api').val()
+//   let operation = $('#node-input-operation').val()
 
-  if (api && operation && objectHasValues(apiList)) {
-    let operationDetails = apiList[api][operation]
-    let description = operationDetails.description
-    // set fallback options if no operation id is set
-    node.operationData.withoutOriginalOpId = operationDetails.withoutOriginalOpId
-    node.operationData.pathName = operationDetails.pathName
-    node.operationData.method = operationDetails.method
-    $("#operation-info").attr('paramName', operationDetails.summary)
-    if (!description) description = 'No Description'
-      $('#operation-info').attr('title', description)
-      $('#operation-info').html(operationDetails.operationId)
-  } else {
-      $("#operation-info").attr('title', '')
-      $('#operation-info').html(' ')
-  }
-}
+//   if (api && operation && objectHasValues(apiList)) {
+//     let operationDetails = apiList[api][operation]
+//     let description = operationDetails.description
+//     // set fallback options if no operation id is set
+//     node.operationData.withoutOriginalOpId = operationDetails.withoutOriginalOpId
+//     node.operationData.pathName = operationDetails.pathName
+//     node.operationData.method = operationDetails.method
+//     $("#operation-info").attr('paramName', operationDetails.summary)
+//     if (!description) description = 'No Description'
+//       $('#operation-info').attr('title', description)
+//       $('#operation-info').html(operationDetails.operationId)
+//   } else {
+//       $("#operation-info").attr('title', '')
+//       $('#operation-info').html(' ')
+//   }
+// }
 
 export function addNewRow(row, i, param, node) {
   // add custom attribute to find parameter with in and name (can't be id, because of blanks (for example Json Request Body))

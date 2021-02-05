@@ -6,17 +6,19 @@
       name: 			{ value: '',  label: 'Name' },
       openApiUrl: { value: '',  label: 'URL' },
       api:        { value: '',  label: 'API tag' },
-      operation:  { value: '',  label: 'Operation'},
+      operation:  { value: 'application/json',  label: 'Operation'},
       operationData: {value: {}},
       errorHandling: {value: '',label: 'Error handling'},
-      parameters: { value: {},  label: 'Parameters', validate: function(v) { 
-        const isValid = true
-        for (const parameter in this.parameters) {
-          const param = this.parameters[parameter]
-          if (param.required && param.value.toString() === '') isValid = false
-        }
-        return isValid
-      }},
+      parameters: { value: [],  label: 'Parameters',
+    //    validate: function(v) { 
+    //     const isValid = true
+    //     for (const parameter in this.parameters) {
+    //       const param = this.parameters[parameter]
+    //       if (param.required && param.value.toString() === '') isValid = false
+    //     }
+    //     return isValid
+    //   }
+      },
       contentType: {value: '',  label: 'Content Type'},
       outputs: {value: 1}
     },
@@ -25,7 +27,7 @@
     icon: "white-globe.png",
     label: function() {
         if (this.name) return this.name
-        else if (this.operationData.name) return this.operationData.name
+        else if (this.operation) return this.operation
         else return "openApi client";
     },
   oneditprepare: function() {
@@ -41,14 +43,16 @@
 
 <script>
 export let node
-import { Input, TypedInput, Select, EditableList, Row, Button } from 'svelte-integration-red/components'
-import { getApiList, objectHasValues, createOperationSelector} from './utils/htmlFunctions'
+import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from 'svelte-integration-red/components'
+import { getApiList, objectHasValues} from './utils/htmlFunctions'
 
 let apiList = {}
 $: error = ''
 let apis = []
 let operations = {}
 let contentTypes = {}
+let parameters = [{name: "hello", value: "vorbelegt"}]
+
 
 const createApi = async () => {
   try {
@@ -57,37 +61,41 @@ const createApi = async () => {
     // if a string was returned it is a node error
     if (typeof apiList === 'string') {
       // setError(node, apiList, error)
-      apis = []
-      operations = []
-      contentTypes = []
+      apis = ['']
+      operations = {}
+      contentTypes = {}
       error = apiList
     } else {
       apis = Object.keys(apiList)
+      
     }
-    console.log('n',node)
   } catch (eMsg) {
     setError(node, eMsg, error)
   }
   error = error  
 }
 createApi()
+node.api = node.api
+node.operation = node.operation
+node.contentType = node.contentType
+
 console.log("afterFirstCreate", node.operation)
 // todo: place saved options!!
 
 // set valid operations if api is set
 $: if (node.api && apiList?.[node.api]) {
+    console.log('sdfasdfasdfasdfsaddsfaasdffds')
    operations = apiList[node.api]
+   node.operation = node.operation
 } else {
 	 operations = {}
 }
 // set valid content Types if operation is set
-let disableContentTypes = false
  $: if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
   contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
-  disableContentTypes = false
+  node.contentType = node.contentType
  } else {
-  contentTypes = []
-  disableContentTypes = true
+  contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
  }
 
 const setError = (message, error) => {
@@ -97,8 +105,6 @@ const setError = (message, error) => {
   error = message
   return
 }
-
-
 
 const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
 
@@ -115,17 +121,41 @@ const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
 <div class="nodeError">{error}</div>
 <hr>
 <Select bind:node prop="api" >
+    <option value=''></option>
 	{#each apis as api}
-    <option value={api}>{api}</option>
+        {#if node.api === api} 
+            <option value={api} selected>{api}</option>
+        {:else}
+            <option value={api}>{api}</option>
+        {/if}
   {/each}
 </Select>
 <Select bind:node prop="operation" >
-  {#each Object.entries(operations) as [key]}
-    <option value={operations[key].operationId}>{operations[key].summary}</option>
+    <option value=''></option>
+    {#each Object.entries(operations) as [key]}
+        {#if node.operation === operations[key].operationId}  -->
+            <option value={operations[key].operationId} selected>{operations[key].summary}</option>
+    {:else}
+        <option value={operations[key].operationId}>{operations[key].summary}</option>
+    {/if}
   {/each}
 </Select>
-<Select bind:node prop="contentType" disabled={disableContentTypes}>
+<Select bind:node prop="contentType">
 	{#each contentTypes as contentType}
-    <option value={contentType}>{contentType}</option>
+        {#if node.contentType === contentType}
+            <option value={contentType} selected>{contentType}</option>
+        {:else}
+            <option value={contentType}>{contentType}</option>
+        {/if}
   {/each}
 </Select>
+Parameters
+<EditableList bind:elements={parameters} let:element={currentParameter} sortable=false style="height: 400px;">
+    <Collapsible icon="cube" label={'collapsible'}><Input bind:parameters prop="yyy" placeholder="xxxxx" />
+        <Row>
+            <Button icon="edit" label="Set default" on:click={() => alert('hello')}></Button>
+            <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
+            <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
+        </Row>
+    </Collapsible>
+</EditableList>
