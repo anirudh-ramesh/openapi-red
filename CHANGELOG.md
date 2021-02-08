@@ -1,5 +1,10 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 0.1.11**
+
+- Merged authentification and proxy request by Tristan Bastian
+- added gitpod files
+
 **Version 0.1.10**
 
 - Content type for body is now mandatory (updated swagger-js)
