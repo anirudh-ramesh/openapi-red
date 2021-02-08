@@ -1,7 +1,7 @@
 export async function getApiList(openApiUrl) {
   let url = encodeURI(openApiUrl)
   // server call
-  return $.get( "/getNewOpenApiInfo?openApiUrl=" + url, function(response) {
+  return $.get( "getNewOpenApiInfo?openApiUrl=" + url, function(response) {
     return response
   })
   .fail(function(message) {

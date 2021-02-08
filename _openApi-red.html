@@ -6,7 +6,7 @@
     $('.inputUrl .red-ui-typedInput-container').removeClass( "error")
     $('.nodeError').html('')
     // server call
-    return $.get( "/getNewOpenApiInfo?openApiUrl=" + openApiUrl, function(response, status) {
+    return $.get( "getNewOpenApiInfo?openApiUrl=" + openApiUrl, function(response, status) {
       // return error Msg from openApi
       if (typeof response === "string") showError(response) 
       else return response
