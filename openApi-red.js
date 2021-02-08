@@ -75,6 +75,9 @@ module.exports = function (RED) {
           // if available put token for auth
           requestInterceptor: (req) => {
             if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
+            if (msg.headers) {
+              req.headers = Object.assign(req.headers || {}, msg.headers);
+            }
           }
         }, {
           // options object (request body for openAPI 3)
