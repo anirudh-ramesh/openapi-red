@@ -3,13 +3,14 @@
     category: 'network',
     color: '#b197ff',
     defaults: {
+      test: { value: '', label: 'Test'},
       name: 			{ value: '',  label: 'Name' },
       openApiUrl: { value: '',  label: 'URL' },
       api:        { value: '',  label: 'API tag' },
       operation:  { value: 'application/json',  label: 'Operation'},
       operationData: {value: {}},
       errorHandling: {value: '',label: 'Error handling'},
-      parameters: { value: [],  label: 'Parameters',
+      parameters: { value: {},  label: 'Parameters',
     //    validate: function(v) { 
     //     const isValid = true
     //     for (const parameter in this.parameters) {
@@ -31,7 +32,6 @@
         else return "openApi client";
     },
   oneditprepare: function() {
-    let node = this  
     render(this)
   },
   oneditsave: function() {
@@ -44,15 +44,18 @@
 <script>
 export let node
 import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from 'svelte-integration-red/components'
+import ConfigNodeInput from 'svelte-integration-red/components/ConfigNodeInput.svelte'
 import { getApiList, objectHasValues} from './utils/htmlFunctions'
 
 let apiList = {}
-$: error = ''
+let error = ''
 let apis = []
 let operations = {}
-let contentTypes = {}
-let parameters = [{name: "hello", value: "vorbelegt"}]
-
+let prevOperation
+if (node.operation) prevOperation = node.operation.toString()
+let contentTypes = []
+let parameterList = []
+let boolInputTypes = ['msg', 'flow', 'global','bool', 'str']
 
 const createApi = async () => {
   try {
@@ -61,42 +64,89 @@ const createApi = async () => {
     // if a string was returned it is a node error
     if (typeof apiList === 'string') {
       // setError(node, apiList, error)
-      apis = ['']
+      apis = []
       operations = {}
-      contentTypes = {}
+      contentTypes = []
       error = apiList
     } else {
       apis = Object.keys(apiList)
-      
     }
   } catch (eMsg) {
     setError(node, eMsg, error)
   }
   error = error  
 }
-createApi()
-node.api = node.api
-node.operation = node.operation
-node.contentType = node.contentType
+if (node.openApiUrl.toString().trim()) createApi()
+// node.api = node.api
+// node.operation = node.operation
+// node.contentType = node.contentType
 
-console.log("afterFirstCreate", node.operation)
-// todo: place saved options!!
+console.log("afterFirstCreate", node)
 
 // set valid operations if api is set
 $: if (node.api && apiList?.[node.api]) {
-    console.log('sdfasdfasdfasdfsaddsfaasdffds')
    operations = apiList[node.api]
    node.operation = node.operation
 } else {
 	 operations = {}
 }
-// set valid content Types if operation is set
- $: if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
-  contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
-  node.contentType = node.contentType
- } else {
-  contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
- }
+
+// create content type selection and parameter list
+$: if (node.operation && apiList?.[node.api]?.[node.operation]) {
+  // clear parameters if operation has changed
+  if (prevOperation !== node.operation) {
+    for (let prop in node.parameters) {
+      delete node.parameters[prop]
+    }
+  }
+  prevOperation = node.operation.toString()
+
+  // set valid content Types if operation is set
+  if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
+    contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
+  } else {
+    // needed input since an update from swagger.js
+    contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
+  }
+  if (!node.contentType || !contentTypes.includes(node.contentType)) {
+    node.contentType = contentTypes[0]
+  }
+  let operationData = apiList[node.api][node.operation]
+  parameterList = operationData.parameters
+  // openApi 3 new body style with selection // Warning: Experimental
+  if (!parameterList && operationData?.requestBody?.content) {
+    let requestBodies = operationData.requestBody.content
+    if (requestBodies[node.contentType]) {
+      parameterList = [{
+      name: "Request body",
+      in: "",
+      schema:  requestBodies[node.contentType].schema,
+      required: operationData.requestBody.required || false,
+      inputType: 'json',
+      type: 'json'
+      }]
+    }
+  }
+  if (undefined === parameterList) {
+    parameterList = []
+  } else {
+    // create object in node.parameters (if it doesn't exists)
+    parameterList.forEach(param => {
+      if (!node.parameters?.[param.in + param.name]) {
+        node.parameters[param.in + param.name] = {
+          name: param.name,
+          in: param.in,
+          required: param.required,
+          value: 'hello world',
+          isActive: param.required || false,
+          inputType: 'str',
+          type: 'str'
+        }
+      }
+    })
+  }
+  console.log("pL: ", parameterList)
+}
 
 const setError = (message, error) => {
   apis = []
@@ -107,7 +157,6 @@ const setError = (message, error) => {
 }
 
 const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
-
 </script>
 
 <!-- Html / Svelte code -->
@@ -133,7 +182,7 @@ const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
 <Select bind:node prop="operation" >
     <option value=''></option>
     {#each Object.entries(operations) as [key]}
-        {#if node.operation === operations[key].operationId}  -->
+        {#if node.operation === operations[key].operationId}
             <option value={operations[key].operationId} selected>{operations[key].summary}</option>
     {:else}
         <option value={operations[key].operationId}>{operations[key].summary}</option>
@@ -150,12 +199,30 @@ const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
   {/each}
 </Select>
 Parameters
-<EditableList bind:elements={parameters} let:element={currentParameter} sortable=false style="height: 400px;">
-    <Collapsible icon="cube" label={'collapsible'}><Input bind:parameters prop="yyy" placeholder="xxxxx" />
-        <Row>
-            <Button icon="edit" label="Set default" on:click={() => alert('hello')}></Button>
-            <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
-            <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
-        </Row>
-    </Collapsible>
-</EditableList>
+<TypedInput bind:node prop="test" typeProp="testTypeProp" types={boolInputTypes} />
+<!-- <TypedInput bind:node prop="content" typeProp="contentType" bind:types={contentTypes} /> -->
+{#if parameterList.length > 0}
+  <EditableList bind:elements={parameterList} let:element={currentParameter} let:index sortable=false addButton=true removable=false style="height: 400px;">
+      {currentParameter.name} + {node.parameters[currentParameter.in + currentParameter.name].value}
+  <TypedInput prop={currentParameter.in + currentParameter.name} label={node.parameters[currentParameter.in + currentParameter.name].name}
+      type={node.parameters[currentParameter.in + currentParameter.name].inputType}
+      types={boolInputTypes}
+      value={node.parameters[currentParameter.in + currentParameter.name].value}
+      id={currentParameter.name + "_" + index}
+      on:change={(e) => {
+        node.parameters[currentParameter.in + currentParameter.name].value = e.detail.value
+        node.parameters[currentParameter.in + currentParameter.name].inputType = e.detail.type
+        }
+      }
+    />
+      <!-- <Collapsible icon="cube" label={'collapsible'}>
+          <Row>
+              <Button icon="edit" label="Set default" on:click={() => alert('hello')}></Button>
+              <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
+              <Button icon="trash" label="Set required" on:click={() => alert('world')}></Button>
+          </Row>
+      </Collapsible> -->
+  </EditableList>
+  {:else}
+    <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
+  {/if}
