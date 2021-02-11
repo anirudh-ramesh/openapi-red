@@ -3798,12 +3798,12 @@ const get_default_slot_context = ctx => ({
 });
 
 // (52:4) {#if label}
-function create_if_block_2$3(ctx) {
+function create_if_block_3$2(ctx) {
 	let label_1;
 	let t0;
 	let t1;
 	let label_1_for_value;
-	let if_block = /*icon*/ ctx[6] && create_if_block_3$2(ctx);
+	let if_block = /*icon*/ ctx[6] && create_if_block_4$1(ctx);
 
 	return {
 		c() {
@@ -3825,7 +3825,7 @@ function create_if_block_2$3(ctx) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
-					if_block = create_if_block_3$2(ctx);
+					if_block = create_if_block_4$1(ctx);
 					if_block.c();
 					if_block.m(label_1, t0);
 				}
@@ -3848,7 +3848,7 @@ function create_if_block_2$3(ctx) {
 }
 
 // (53:68) {#if icon}
-function create_if_block_3$2(ctx) {
+function create_if_block_4$1(ctx) {
 	let i;
 	let i_class_value;
 
@@ -3871,7 +3871,25 @@ function create_if_block_3$2(ctx) {
 	};
 }
 
-// (62:12) {#if removable}
+// (61:12) {#if sortable}
+function create_if_block_2$3(ctx) {
+	let i;
+
+	return {
+		c() {
+			i = element("i");
+			attr(i, "class", "red-ui-editableList-item-handle fa fa-bars");
+		},
+		m(target, anchor) {
+			insert(target, i, anchor);
+		},
+		d(detaching) {
+			if (detaching) detach(i);
+		}
+	};
+}
+
+// (64:12) {#if removable}
 function create_if_block_1$4(ctx) {
 	let div;
 	let button;
@@ -3926,14 +3944,14 @@ function create_each_block$1(key_1, ctx) {
 	let li;
 	let div;
 	let t0;
-	let i;
 	let t1;
 	let t2;
 	let li_id_value;
 	let current;
 	const default_slot_template = /*#slots*/ ctx[10].default;
 	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[12], get_default_slot_context);
-	let if_block = /*removable*/ ctx[3] && create_if_block_1$4(ctx);
+	let if_block0 = /*sortable*/ ctx[2] && create_if_block_2$3();
+	let if_block1 = /*removable*/ ctx[3] && create_if_block_1$4(ctx);
 
 	return {
 		key: key_1,
@@ -3943,14 +3961,13 @@ function create_each_block$1(key_1, ctx) {
 			div = element("div");
 			if (default_slot) default_slot.c();
 			t0 = space();
-			i = element("i");
+			if (if_block0) if_block0.c();
 			t1 = space();
-			if (if_block) if_block.c();
+			if (if_block1) if_block1.c();
 			t2 = space();
 			attr(div, "class", "red-ui-editableList-item-content");
 			set_style(div, "overflow", "hidden");
 			set_style(div, "white-space", "nowrap");
-			attr(i, "class", "red-ui-editableList-item-handle fa fa-bars");
 			attr(li, "id", li_id_value = /*index*/ ctx[17]);
 			toggle_class(li, "red-ui-editableList-item-sortable", /*sortable*/ ctx[2]);
 			toggle_class(li, "red-ui-editableList-item-removable", /*removable*/ ctx[3]);
@@ -3965,9 +3982,9 @@ function create_each_block$1(key_1, ctx) {
 			}
 
 			append(li, t0);
-			append(li, i);
+			if (if_block0) if_block0.m(li, null);
 			append(li, t1);
-			if (if_block) if_block.m(li, null);
+			if (if_block1) if_block1.m(li, null);
 			append(li, t2);
 			current = true;
 		},
@@ -3980,24 +3997,35 @@ function create_each_block$1(key_1, ctx) {
 				}
 			}
 
+			if (/*sortable*/ ctx[2]) {
+				if (if_block0) ; else {
+					if_block0 = create_if_block_2$3();
+					if_block0.c();
+					if_block0.m(li, t1);
+				}
+			} else if (if_block0) {
+				if_block0.d(1);
+				if_block0 = null;
+			}
+
 			if (/*removable*/ ctx[3]) {
-				if (if_block) {
-					if_block.p(ctx, dirty);
+				if (if_block1) {
+					if_block1.p(ctx, dirty);
 
 					if (dirty & /*removable*/ 8) {
-						transition_in(if_block, 1);
+						transition_in(if_block1, 1);
 					}
 				} else {
-					if_block = create_if_block_1$4(ctx);
-					if_block.c();
-					transition_in(if_block, 1);
-					if_block.m(li, t2);
+					if_block1 = create_if_block_1$4(ctx);
+					if_block1.c();
+					transition_in(if_block1, 1);
+					if_block1.m(li, t2);
 				}
-			} else if (if_block) {
+			} else if (if_block1) {
 				group_outros();
 
-				transition_out(if_block, 1, 1, () => {
-					if_block = null;
+				transition_out(if_block1, 1, 1, () => {
+					if_block1 = null;
 				});
 
 				check_outros();
@@ -4018,23 +4046,24 @@ function create_each_block$1(key_1, ctx) {
 		i(local) {
 			if (current) return;
 			transition_in(default_slot, local);
-			transition_in(if_block);
+			transition_in(if_block1);
 			current = true;
 		},
 		o(local) {
 			transition_out(default_slot, local);
-			transition_out(if_block);
+			transition_out(if_block1);
 			current = false;
 		},
 		d(detaching) {
 			if (detaching) detach(li);
 			if (default_slot) default_slot.d(detaching);
-			if (if_block) if_block.d();
+			if (if_block0) if_block0.d();
+			if (if_block1) if_block1.d();
 		}
 	};
 }
 
-// (70:4) {#if addButton}
+// (72:4) {#if addButton}
 function create_if_block$6(ctx) {
 	let button;
 	let current;
@@ -4085,7 +4114,7 @@ function create_default_slot$2(ctx) {
 	let t1;
 	let if_block1_anchor;
 	let current;
-	let if_block0 = /*label*/ ctx[7] && create_if_block_2$3(ctx);
+	let if_block0 = /*label*/ ctx[7] && create_if_block_3$2(ctx);
 	let each_value = /*elements*/ ctx[0];
 	const get_key = ctx => /*index*/ ctx[17];
 
@@ -4132,7 +4161,7 @@ function create_default_slot$2(ctx) {
 				if (if_block0) {
 					if_block0.p(ctx, dirty);
 				} else {
-					if_block0 = create_if_block_2$3(ctx);
+					if_block0 = create_if_block_3$2(ctx);
 					if_block0.c();
 					if_block0.m(t0.parentNode, t0);
 				}
@@ -4751,39 +4780,39 @@ async function getApiList(openApiUrl) {
 
 function get_each_context$2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[23] = list[i];
+	child_ctx[24] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[26] = list[i][0];
+	child_ctx[27] = list[i][0];
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[29] = list[i];
+	child_ctx[30] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_3(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[32] = list[i];
+	child_ctx[33] = list[i];
 	return child_ctx;
 }
 
-// (166:1) {#each errorHandlingOptions as eOption}
+// (177:1) {#each errorHandlingOptions as eOption}
 function create_each_block_3(ctx) {
 	let option;
-	let t_value = /*eOption*/ ctx[32] + "";
+	let t_value = /*eOption*/ ctx[33] + "";
 	let t;
 
 	return {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = /*eOption*/ ctx[32];
+			option.__value = /*eOption*/ ctx[33];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -4797,10 +4826,10 @@ function create_each_block_3(ctx) {
 	};
 }
 
-// (165:0) <Select bind:node prop="errorHandling" >
+// (176:0) <Select bind:node prop="errorHandling" >
 function create_default_slot_4(ctx) {
 	let each_1_anchor;
-	let each_value_3 = /*errorHandlingOptions*/ ctx[8];
+	let each_value_3 = /*errorHandlingOptions*/ ctx[7];
 	let each_blocks = [];
 
 	for (let i = 0; i < each_value_3.length; i += 1) {
@@ -4823,8 +4852,8 @@ function create_default_slot_4(ctx) {
 			insert(target, each_1_anchor, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*errorHandlingOptions*/ 256) {
-				each_value_3 = /*errorHandlingOptions*/ ctx[8];
+			if (dirty[0] & /*errorHandlingOptions*/ 128) {
+				each_value_3 = /*errorHandlingOptions*/ ctx[7];
 				let i;
 
 				for (i = 0; i < each_value_3.length; i += 1) {
@@ -4853,10 +4882,10 @@ function create_default_slot_4(ctx) {
 	};
 }
 
-// (177:8) {:else}
+// (188:8) {:else}
 function create_else_block_3(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[29] + "";
+	let t_value = /*api*/ ctx[30] + "";
 	let t;
 	let option_value_value;
 
@@ -4864,7 +4893,7 @@ function create_else_block_3(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[29];
+			option.__value = option_value_value = /*api*/ ctx[30];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -4872,9 +4901,9 @@ function create_else_block_3(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*apis*/ 16 && t_value !== (t_value = /*api*/ ctx[29] + "")) set_data(t, t_value);
+			if (dirty[0] & /*apis*/ 16 && t_value !== (t_value = /*api*/ ctx[30] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*apis*/ 16 && option_value_value !== (option_value_value = /*api*/ ctx[29])) {
+			if (dirty[0] & /*apis*/ 16 && option_value_value !== (option_value_value = /*api*/ ctx[30])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -4885,10 +4914,10 @@ function create_else_block_3(ctx) {
 	};
 }
 
-// (175:8) {#if node.api === api}
+// (186:8) {#if node.api === api}
 function create_if_block_3$3(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[29] + "";
+	let t_value = /*api*/ ctx[30] + "";
 	let t;
 	let option_value_value;
 
@@ -4896,7 +4925,7 @@ function create_if_block_3$3(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[29];
+			option.__value = option_value_value = /*api*/ ctx[30];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -4905,9 +4934,9 @@ function create_if_block_3$3(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*apis*/ 16 && t_value !== (t_value = /*api*/ ctx[29] + "")) set_data(t, t_value);
+			if (dirty[0] & /*apis*/ 16 && t_value !== (t_value = /*api*/ ctx[30] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*apis*/ 16 && option_value_value !== (option_value_value = /*api*/ ctx[29])) {
+			if (dirty[0] & /*apis*/ 16 && option_value_value !== (option_value_value = /*api*/ ctx[30])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -4918,12 +4947,12 @@ function create_if_block_3$3(ctx) {
 	};
 }
 
-// (174:1) {#each apis as api}
+// (185:1) {#each apis as api}
 function create_each_block_2(ctx) {
 	let if_block_anchor;
 
 	function select_block_type(ctx, dirty) {
-		if (/*node*/ ctx[0].api === /*api*/ ctx[29]) return create_if_block_3$3;
+		if (/*node*/ ctx[0].api === /*api*/ ctx[30]) return create_if_block_3$3;
 		return create_else_block_3;
 	}
 
@@ -4959,7 +4988,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (172:0) <Select bind:node prop="api" >
+// (183:0) <Select bind:node prop="api" >
 function create_default_slot_3(ctx) {
 	let option;
 	let t;
@@ -5027,10 +5056,10 @@ function create_default_slot_3(ctx) {
 	};
 }
 
-// (187:4) {:else}
+// (198:4) {:else}
 function create_else_block_2$1(ctx) {
 	let option;
-	let t_value = /*operations*/ ctx[5][/*key*/ ctx[26]].summary + "";
+	let t_value = /*operations*/ ctx[5][/*key*/ ctx[27]].summary + "";
 	let t;
 	let option_value_value;
 
@@ -5038,7 +5067,7 @@ function create_else_block_2$1(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*operations*/ ctx[5][/*key*/ ctx[26]].operationId;
+			option.__value = option_value_value = /*operations*/ ctx[5][/*key*/ ctx[27]].operationId;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -5046,9 +5075,9 @@ function create_else_block_2$1(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*operations*/ 32 && t_value !== (t_value = /*operations*/ ctx[5][/*key*/ ctx[26]].summary + "")) set_data(t, t_value);
+			if (dirty[0] & /*operations*/ 32 && t_value !== (t_value = /*operations*/ ctx[5][/*key*/ ctx[27]].summary + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*operations*/ 32 && option_value_value !== (option_value_value = /*operations*/ ctx[5][/*key*/ ctx[26]].operationId)) {
+			if (dirty[0] & /*operations*/ 32 && option_value_value !== (option_value_value = /*operations*/ ctx[5][/*key*/ ctx[27]].operationId)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -5059,10 +5088,10 @@ function create_else_block_2$1(ctx) {
 	};
 }
 
-// (185:8) {#if node.operation === operations[key].operationId}
+// (196:8) {#if node.operation === operations[key].operationId}
 function create_if_block_2$4(ctx) {
 	let option;
-	let t_value = /*operations*/ ctx[5][/*key*/ ctx[26]].summary + "";
+	let t_value = /*operations*/ ctx[5][/*key*/ ctx[27]].summary + "";
 	let t;
 	let option_value_value;
 
@@ -5070,7 +5099,7 @@ function create_if_block_2$4(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*operations*/ ctx[5][/*key*/ ctx[26]].operationId;
+			option.__value = option_value_value = /*operations*/ ctx[5][/*key*/ ctx[27]].operationId;
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -5079,9 +5108,9 @@ function create_if_block_2$4(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*operations*/ 32 && t_value !== (t_value = /*operations*/ ctx[5][/*key*/ ctx[26]].summary + "")) set_data(t, t_value);
+			if (dirty[0] & /*operations*/ 32 && t_value !== (t_value = /*operations*/ ctx[5][/*key*/ ctx[27]].summary + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*operations*/ 32 && option_value_value !== (option_value_value = /*operations*/ ctx[5][/*key*/ ctx[26]].operationId)) {
+			if (dirty[0] & /*operations*/ 32 && option_value_value !== (option_value_value = /*operations*/ ctx[5][/*key*/ ctx[27]].operationId)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -5092,12 +5121,12 @@ function create_if_block_2$4(ctx) {
 	};
 }
 
-// (184:4) {#each Object.entries(operations) as [key]}
+// (195:4) {#each Object.entries(operations) as [key]}
 function create_each_block_1(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_1(ctx, dirty) {
-		if (/*node*/ ctx[0].operation === /*operations*/ ctx[5][/*key*/ ctx[26]].operationId) return create_if_block_2$4;
+		if (/*node*/ ctx[0].operation === /*operations*/ ctx[5][/*key*/ ctx[27]].operationId) return create_if_block_2$4;
 		return create_else_block_2$1;
 	}
 
@@ -5133,7 +5162,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (182:0) <Select bind:node prop="operation" >
+// (193:0) <Select bind:node prop="operation" >
 function create_default_slot_2(ctx) {
 	let option;
 	let t;
@@ -5201,10 +5230,10 @@ function create_default_slot_2(ctx) {
 	};
 }
 
-// (196:8) {:else}
+// (207:8) {:else}
 function create_else_block_1$2(ctx) {
 	let option;
-	let t_value = /*contentType*/ ctx[23] + "";
+	let t_value = /*contentType*/ ctx[24] + "";
 	let t;
 	let option_value_value;
 
@@ -5212,7 +5241,7 @@ function create_else_block_1$2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*contentType*/ ctx[23];
+			option.__value = option_value_value = /*contentType*/ ctx[24];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -5220,9 +5249,9 @@ function create_else_block_1$2(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[23] + "")) set_data(t, t_value);
+			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[24] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[23])) {
+			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[24])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -5233,10 +5262,10 @@ function create_else_block_1$2(ctx) {
 	};
 }
 
-// (194:8) {#if node.contentType === contentType}
+// (205:8) {#if node.contentType === contentType}
 function create_if_block_1$6(ctx) {
 	let option;
-	let t_value = /*contentType*/ ctx[23] + "";
+	let t_value = /*contentType*/ ctx[24] + "";
 	let t;
 	let option_value_value;
 
@@ -5244,7 +5273,7 @@ function create_if_block_1$6(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*contentType*/ ctx[23];
+			option.__value = option_value_value = /*contentType*/ ctx[24];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -5253,9 +5282,9 @@ function create_if_block_1$6(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[23] + "")) set_data(t, t_value);
+			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[24] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[23])) {
+			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[24])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -5266,12 +5295,12 @@ function create_if_block_1$6(ctx) {
 	};
 }
 
-// (193:1) {#each contentTypes as contentType}
+// (204:1) {#each contentTypes as contentType}
 function create_each_block$2(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_2(ctx, dirty) {
-		if (/*node*/ ctx[0].contentType === /*contentType*/ ctx[23]) return create_if_block_1$6;
+		if (/*node*/ ctx[0].contentType === /*contentType*/ ctx[24]) return create_if_block_1$6;
 		return create_else_block_1$2;
 	}
 
@@ -5307,7 +5336,7 @@ function create_each_block$2(ctx) {
 	};
 }
 
-// (192:0) <Select bind:node prop="contentType">
+// (203:0) <Select bind:node prop="contentType">
 function create_default_slot_1(ctx) {
 	let each_1_anchor;
 	let each_value = /*contentTypes*/ ctx[1];
@@ -5363,7 +5392,7 @@ function create_default_slot_1(ctx) {
 	};
 }
 
-// (226:2) {:else}
+// (245:0) {:else}
 function create_else_block$5(ctx) {
 	let div;
 
@@ -5386,26 +5415,26 @@ function create_else_block$5(ctx) {
 	};
 }
 
-// (204:0) {#if parameterList.length > 0}
+// (215:0) {#if Object.keys(node.parameters).length > 0}
 function create_if_block$8(ctx) {
 	let editablelist;
 	let updating_elements;
 	let current;
 
 	function editablelist_elements_binding(value) {
-		/*editablelist_elements_binding*/ ctx[19].call(null, value);
+		/*editablelist_elements_binding*/ ctx[17].call(null, value);
 	}
 
 	let editablelist_props = {
 		sortable: "false",
-		addButton: "true",
+		addButton: "false",
 		removable: "false",
 		style: "height: 400px;",
 		$$slots: {
 			default: [
 				create_default_slot$4,
-				({ element: currentParameter, index }) => ({ 21: currentParameter, 22: index }),
-				({ element: currentParameter, index }) => [(currentParameter ? 2097152 : 0) | (index ? 4194304 : 0)]
+				({ element: param, index }) => ({ 22: param, 23: index }),
+				({ element: param, index }) => [(param ? 4194304 : 0) | (index ? 8388608 : 0)]
 			]
 		},
 		$$scope: { ctx }
@@ -5429,7 +5458,7 @@ function create_if_block$8(ctx) {
 		p(ctx, dirty) {
 			const editablelist_changes = {};
 
-			if (dirty[0] & /*currentParameter, node, index*/ 6291457 | dirty[1] & /*$$scope*/ 16) {
+			if (dirty[0] & /*param, node, index*/ 12582913 | dirty[1] & /*$$scope*/ 32) {
 				editablelist_changes.$$scope = { dirty, ctx };
 			}
 
@@ -5456,29 +5485,39 @@ function create_if_block$8(ctx) {
 	};
 }
 
-// (205:2) <EditableList bind:elements={parameterList} let:element={currentParameter} let:index sortable=false addButton=true removable=false style="height: 400px;">
+// (216:2) <EditableList bind:elements={parameterList} let:element={param} let:index sortable=false addButton=false removable=false style="height: 400px;">
 function create_default_slot$4(ctx) {
-	let t0_value = /*currentParameter*/ ctx[21].name + "";
+	let div;
+	let t0_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22]] + "";
 	let t0;
 	let t1;
-	let t2_value = /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].value + "";
+	let t2_value = /*param*/ ctx[22] + "";
 	let t2;
 	let t3;
+	let t4_value = /*param*/ ctx[22].name + "";
+	let t4;
+	let t5;
+	let t6_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].value + "";
+	let t6;
+	let t7;
+	let t8_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].type + "";
+	let t8;
+	let t9;
 	let typedinput;
 	let current;
 
 	function change_handler(...args) {
-		return /*change_handler*/ ctx[18](/*currentParameter*/ ctx[21], ...args);
+		return /*change_handler*/ ctx[16](/*param*/ ctx[22], ...args);
 	}
 
 	typedinput = new TypedInput({
 			props: {
-				prop: /*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name,
-				label: /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].name,
-				type: /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].inputType,
-				types: /*boolInputTypes*/ ctx[6],
-				value: /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].value,
-				id: /*currentParameter*/ ctx[21].name + "_" + /*index*/ ctx[22]
+				prop: /*param*/ ctx[22].in + /*param*/ ctx[22].name,
+				label: /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].name,
+				types: /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].allowedTypes,
+				type: /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].type,
+				value: /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].value,
+				id: /*param*/ ctx[22].name.replace(" ", "_") + "_" + /*index*/ ctx[23]
 			}
 		});
 
@@ -5486,30 +5525,48 @@ function create_default_slot$4(ctx) {
 
 	return {
 		c() {
+			div = element("div");
 			t0 = text(t0_value);
-			t1 = text(" + ");
+			t1 = space();
 			t2 = text(t2_value);
-			t3 = space();
+			t3 = text(" + ");
+			t4 = text(t4_value);
+			t5 = text(" + ");
+			t6 = text(t6_value);
+			t7 = text(" + ");
+			t8 = text(t8_value);
+			t9 = space();
 			create_component(typedinput.$$.fragment);
 		},
 		m(target, anchor) {
-			insert(target, t0, anchor);
+			insert(target, div, anchor);
+			append(div, t0);
 			insert(target, t1, anchor);
 			insert(target, t2, anchor);
 			insert(target, t3, anchor);
+			insert(target, t4, anchor);
+			insert(target, t5, anchor);
+			insert(target, t6, anchor);
+			insert(target, t7, anchor);
+			insert(target, t8, anchor);
+			insert(target, t9, anchor);
 			mount_component(typedinput, target, anchor);
 			current = true;
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if ((!current || dirty[0] & /*currentParameter*/ 2097152) && t0_value !== (t0_value = /*currentParameter*/ ctx[21].name + "")) set_data(t0, t0_value);
-			if ((!current || dirty[0] & /*node, currentParameter*/ 2097153) && t2_value !== (t2_value = /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].value + "")) set_data(t2, t2_value);
+			if ((!current || dirty[0] & /*node, param*/ 4194305) && t0_value !== (t0_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22]] + "")) set_data(t0, t0_value);
+			if ((!current || dirty[0] & /*param*/ 4194304) && t2_value !== (t2_value = /*param*/ ctx[22] + "")) set_data(t2, t2_value);
+			if ((!current || dirty[0] & /*param*/ 4194304) && t4_value !== (t4_value = /*param*/ ctx[22].name + "")) set_data(t4, t4_value);
+			if ((!current || dirty[0] & /*node, param*/ 4194305) && t6_value !== (t6_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].value + "")) set_data(t6, t6_value);
+			if ((!current || dirty[0] & /*node, param*/ 4194305) && t8_value !== (t8_value = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].type + "")) set_data(t8, t8_value);
 			const typedinput_changes = {};
-			if (dirty[0] & /*currentParameter*/ 2097152) typedinput_changes.prop = /*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name;
-			if (dirty[0] & /*node, currentParameter*/ 2097153) typedinput_changes.label = /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].name;
-			if (dirty[0] & /*node, currentParameter*/ 2097153) typedinput_changes.type = /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].inputType;
-			if (dirty[0] & /*node, currentParameter*/ 2097153) typedinput_changes.value = /*node*/ ctx[0].parameters[/*currentParameter*/ ctx[21].in + /*currentParameter*/ ctx[21].name].value;
-			if (dirty[0] & /*currentParameter, index*/ 6291456) typedinput_changes.id = /*currentParameter*/ ctx[21].name + "_" + /*index*/ ctx[22];
+			if (dirty[0] & /*param*/ 4194304) typedinput_changes.prop = /*param*/ ctx[22].in + /*param*/ ctx[22].name;
+			if (dirty[0] & /*node, param*/ 4194305) typedinput_changes.label = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].name;
+			if (dirty[0] & /*node, param*/ 4194305) typedinput_changes.types = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].allowedTypes;
+			if (dirty[0] & /*node, param*/ 4194305) typedinput_changes.type = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].type;
+			if (dirty[0] & /*node, param*/ 4194305) typedinput_changes.value = /*node*/ ctx[0].parameters[/*param*/ ctx[22].in + /*param*/ ctx[22].name].value;
+			if (dirty[0] & /*param, index*/ 12582912) typedinput_changes.id = /*param*/ ctx[22].name.replace(" ", "_") + "_" + /*index*/ ctx[23];
 			typedinput.$set(typedinput_changes);
 		},
 		i(local) {
@@ -5522,10 +5579,16 @@ function create_default_slot$4(ctx) {
 			current = false;
 		},
 		d(detaching) {
-			if (detaching) detach(t0);
+			if (detaching) detach(div);
 			if (detaching) detach(t1);
 			if (detaching) detach(t2);
 			if (detaching) detach(t3);
+			if (detaching) detach(t4);
+			if (detaching) detach(t5);
+			if (detaching) detach(t6);
+			if (detaching) detach(t7);
+			if (detaching) detach(t8);
+			if (detaching) detach(t9);
 			destroy_component(typedinput, detaching);
 		}
 	};
@@ -5557,16 +5620,14 @@ function create_fragment$9(ctx) {
 	let select3;
 	let updating_node_5;
 	let t9;
-	let typedinput;
-	let updating_node_6;
-	let t10;
+	let show_if;
 	let current_block_type_index;
 	let if_block;
 	let if_block_anchor;
 	let current;
 
 	function input0_node_binding(value) {
-		/*input0_node_binding*/ ctx[11].call(null, value);
+		/*input0_node_binding*/ ctx[10].call(null, value);
 	}
 
 	let input0_props = { prop: "name", placeholder: "openApi-red" };
@@ -5579,7 +5640,7 @@ function create_fragment$9(ctx) {
 	binding_callbacks.push(() => bind(input0, "node", input0_node_binding));
 
 	function input1_node_binding(value) {
-		/*input1_node_binding*/ ctx[12].call(null, value);
+		/*input1_node_binding*/ ctx[11].call(null, value);
 	}
 
 	let input1_props = { prop: "openApiUrl" };
@@ -5591,10 +5652,10 @@ function create_fragment$9(ctx) {
 	input1 = new Input({ props: input1_props });
 	binding_callbacks.push(() => bind(input1, "node", input1_node_binding));
 	button = new Button({ props: { icon: "edit", label: "read" } });
-	button.$on("click", /*createApi*/ ctx[7]);
+	button.$on("click", /*createApi*/ ctx[6]);
 
 	function select0_node_binding(value) {
-		/*select0_node_binding*/ ctx[13].call(null, value);
+		/*select0_node_binding*/ ctx[12].call(null, value);
 	}
 
 	let select0_props = {
@@ -5611,7 +5672,7 @@ function create_fragment$9(ctx) {
 	binding_callbacks.push(() => bind(select0, "node", select0_node_binding));
 
 	function select1_node_binding(value) {
-		/*select1_node_binding*/ ctx[14].call(null, value);
+		/*select1_node_binding*/ ctx[13].call(null, value);
 	}
 
 	let select1_props = {
@@ -5628,7 +5689,7 @@ function create_fragment$9(ctx) {
 	binding_callbacks.push(() => bind(select1, "node", select1_node_binding));
 
 	function select2_node_binding(value) {
-		/*select2_node_binding*/ ctx[15].call(null, value);
+		/*select2_node_binding*/ ctx[14].call(null, value);
 	}
 
 	let select2_props = {
@@ -5645,7 +5706,7 @@ function create_fragment$9(ctx) {
 	binding_callbacks.push(() => bind(select2, "node", select2_node_binding));
 
 	function select3_node_binding(value) {
-		/*select3_node_binding*/ ctx[16].call(null, value);
+		/*select3_node_binding*/ ctx[15].call(null, value);
 	}
 
 	let select3_props = {
@@ -5660,32 +5721,16 @@ function create_fragment$9(ctx) {
 
 	select3 = new Select({ props: select3_props });
 	binding_callbacks.push(() => bind(select3, "node", select3_node_binding));
-
-	function typedinput_node_binding(value) {
-		/*typedinput_node_binding*/ ctx[17].call(null, value);
-	}
-
-	let typedinput_props = {
-		prop: "test",
-		typeProp: "testTypeProp",
-		types: /*boolInputTypes*/ ctx[6]
-	};
-
-	if (/*node*/ ctx[0] !== void 0) {
-		typedinput_props.node = /*node*/ ctx[0];
-	}
-
-	typedinput = new TypedInput({ props: typedinput_props });
-	binding_callbacks.push(() => bind(typedinput, "node", typedinput_node_binding));
 	const if_block_creators = [create_if_block$8, create_else_block$5];
 	const if_blocks = [];
 
 	function select_block_type_3(ctx, dirty) {
-		if (/*parameterList*/ ctx[2].length > 0) return 0;
+		if (dirty[0] & /*node*/ 1) show_if = !!(Object.keys(/*node*/ ctx[0].parameters).length > 0);
+		if (show_if) return 0;
 		return 1;
 	}
 
-	current_block_type_index = select_block_type_3(ctx);
+	current_block_type_index = select_block_type_3(ctx, [-1]);
 	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
 	return {
@@ -5708,9 +5753,7 @@ function create_fragment$9(ctx) {
 			create_component(select2.$$.fragment);
 			t8 = space();
 			create_component(select3.$$.fragment);
-			t9 = text("\nParameters\n");
-			create_component(typedinput.$$.fragment);
-			t10 = space();
+			t9 = text("\nParameters\n\n\n");
 			if_block.c();
 			if_block_anchor = empty();
 			attr(div, "class", "nodeError");
@@ -5735,8 +5778,6 @@ function create_fragment$9(ctx) {
 			insert(target, t8, anchor);
 			mount_component(select3, target, anchor);
 			insert(target, t9, anchor);
-			mount_component(typedinput, target, anchor);
-			insert(target, t10, anchor);
 			if_blocks[current_block_type_index].m(target, anchor);
 			insert(target, if_block_anchor, anchor);
 			current = true;
@@ -5762,7 +5803,7 @@ function create_fragment$9(ctx) {
 			input1.$set(input1_changes);
 			const select0_changes = {};
 
-			if (dirty[1] & /*$$scope*/ 16) {
+			if (dirty[1] & /*$$scope*/ 32) {
 				select0_changes.$$scope = { dirty, ctx };
 			}
 
@@ -5776,7 +5817,7 @@ function create_fragment$9(ctx) {
 			if (!current || dirty[0] & /*error*/ 8) set_data(t4, /*error*/ ctx[3]);
 			const select1_changes = {};
 
-			if (dirty[0] & /*apis, node*/ 17 | dirty[1] & /*$$scope*/ 16) {
+			if (dirty[0] & /*apis, node*/ 17 | dirty[1] & /*$$scope*/ 32) {
 				select1_changes.$$scope = { dirty, ctx };
 			}
 
@@ -5789,7 +5830,7 @@ function create_fragment$9(ctx) {
 			select1.$set(select1_changes);
 			const select2_changes = {};
 
-			if (dirty[0] & /*operations, node*/ 33 | dirty[1] & /*$$scope*/ 16) {
+			if (dirty[0] & /*operations, node*/ 33 | dirty[1] & /*$$scope*/ 32) {
 				select2_changes.$$scope = { dirty, ctx };
 			}
 
@@ -5802,7 +5843,7 @@ function create_fragment$9(ctx) {
 			select2.$set(select2_changes);
 			const select3_changes = {};
 
-			if (dirty[0] & /*contentTypes, node*/ 3 | dirty[1] & /*$$scope*/ 16) {
+			if (dirty[0] & /*contentTypes, node*/ 3 | dirty[1] & /*$$scope*/ 32) {
 				select3_changes.$$scope = { dirty, ctx };
 			}
 
@@ -5813,17 +5854,8 @@ function create_fragment$9(ctx) {
 			}
 
 			select3.$set(select3_changes);
-			const typedinput_changes = {};
-
-			if (!updating_node_6 && dirty[0] & /*node*/ 1) {
-				updating_node_6 = true;
-				typedinput_changes.node = /*node*/ ctx[0];
-				add_flush_callback(() => updating_node_6 = false);
-			}
-
-			typedinput.$set(typedinput_changes);
 			let previous_block_index = current_block_type_index;
-			current_block_type_index = select_block_type_3(ctx);
+			current_block_type_index = select_block_type_3(ctx, dirty);
 
 			if (current_block_type_index === previous_block_index) {
 				if_blocks[current_block_type_index].p(ctx, dirty);
@@ -5857,7 +5889,6 @@ function create_fragment$9(ctx) {
 			transition_in(select1.$$.fragment, local);
 			transition_in(select2.$$.fragment, local);
 			transition_in(select3.$$.fragment, local);
-			transition_in(typedinput.$$.fragment, local);
 			transition_in(if_block);
 			current = true;
 		},
@@ -5869,7 +5900,6 @@ function create_fragment$9(ctx) {
 			transition_out(select1.$$.fragment, local);
 			transition_out(select2.$$.fragment, local);
 			transition_out(select3.$$.fragment, local);
-			transition_out(typedinput.$$.fragment, local);
 			transition_out(if_block);
 			current = false;
 		},
@@ -5892,8 +5922,6 @@ function create_fragment$9(ctx) {
 			if (detaching) detach(t8);
 			destroy_component(select3, detaching);
 			if (detaching) detach(t9);
-			destroy_component(typedinput, detaching);
-			if (detaching) detach(t10);
 			if_blocks[current_block_type_index].d(detaching);
 			if (detaching) detach(if_block_anchor);
 		}
@@ -5904,7 +5932,6 @@ RED.nodes.registerType("openApi-red", {
 	category: "network",
 	color: "#b197ff",
 	defaults: {
-		test: { value: "", label: "Test" },
 		name: { value: "", label: "Name" },
 		openApiUrl: { value: "", label: "URL" },
 		api: { value: "", label: "API tag" },
@@ -5914,14 +5941,7 @@ RED.nodes.registerType("openApi-red", {
 		},
 		operationData: { value: {} },
 		errorHandling: { value: "", label: "Error handling" },
-		parameters: { value: {}, label: "Parameters" }, //    validate: function(v) { 
-		//     const isValid = true
-		//     for (const parameter in this.parameters) {
-		//       const param = this.parameters[parameter]
-		//       if (param.required && param.value.toString() === '') isValid = false
-		//     }
-		//     return isValid
-		//   }
+		parameters: { value: {}, label: "Parameters" },
 		contentType: { value: "", label: "Content Type" },
 		outputs: { value: 1 }
 	},
@@ -5950,12 +5970,27 @@ function instance$9($$self, $$props, $$invalidate) {
 	if (node.operation) prevOperation = node.operation.toString();
 	let contentTypes = [];
 	let parameterList = [];
-	let boolInputTypes = ["msg", "flow", "global", "bool", "str"];
+
+	const setCorrectType = param => {
+		let type = param?.schema?.type;
+		if (type === "boolean") return "bool";
+		if (type === "integer") return "num";
+		if (param.name === "Json Request Body" || param.name === "body" || type === "body" || type === "object") return "json";
+		if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return "array";
+		return "str";
+	};
+
+	const getAllowedTypes = type => {
+		if (type === "bool") return ["bool", "msg", "flow", "global"];
+		if (type === "num") return ["num", "jsonata", "msg", "flow", "global"];
+		if (type === "json") return ["json", "jsonata", "msg", "flow", "global"];
+		return ["str", "json", "jsonata", "msg", "flow", "global"];
+	};
 
 	const createApi = async () => {
 		try {
 			$$invalidate(3, error = "");
-			$$invalidate(9, apiList = await getApiList(node.openApiUrl));
+			$$invalidate(8, apiList = await getApiList(node.openApiUrl));
 
 			// if a string was returned it is a node error
 			if (typeof apiList === "string") {
@@ -5993,47 +6028,43 @@ function instance$9($$self, $$props, $$invalidate) {
 
 	function input0_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
 	function input1_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
 	function select0_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
 	function select1_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
 	function select2_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
 	function select3_node_binding(value) {
 		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+		(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 	}
 
-	function typedinput_node_binding(value) {
-		node = value;
-		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
-	}
-
-	const change_handler = (currentParameter, e) => {
-		$$invalidate(0, node.parameters[currentParameter.in + currentParameter.name].value = e.detail.value, node);
-		$$invalidate(0, node.parameters[currentParameter.in + currentParameter.name].inputType = e.detail.type, node);
+	const change_handler = (param, e) => {
+		console.log("changed", e);
+		$$invalidate(0, node.parameters[param.in + param.name].value = e.detail.value, node);
+		$$invalidate(0, node.parameters[param.in + param.name].type = e.detail.type, node);
 	};
 
 	function editablelist_elements_binding(value) {
 		parameterList = value;
-		(((($$invalidate(2, parameterList), $$invalidate(0, node)), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes));
+		(((($$invalidate(2, parameterList), $$invalidate(0, node)), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes));
 	}
 
 	$$self.$$set = $$props => {
@@ -6041,17 +6072,17 @@ function instance$9($$self, $$props, $$invalidate) {
 	};
 
 	$$self.$$.update = () => {
-		if ($$self.$$.dirty[0] & /*node, apiList*/ 513) {
+		if ($$self.$$.dirty[0] & /*node, apiList*/ 257) {
 			// set valid operations if api is set
 			 if (node.api && apiList?.[node.api]) {
 				$$invalidate(5, operations = apiList[node.api]);
-				(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(10, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
+				(((($$invalidate(0, node), $$invalidate(8, apiList)), $$invalidate(9, prevOperation)), $$invalidate(1, contentTypes)), $$invalidate(2, parameterList));
 			} else {
 				$$invalidate(5, operations = {});
 			}
 		}
 
-		if ($$self.$$.dirty[0] & /*node, apiList, prevOperation, contentTypes, parameterList*/ 1543) {
+		if ($$self.$$.dirty[0] & /*node, apiList, prevOperation, contentTypes, parameterList*/ 775) {
 			// create content type selection and parameter list
 			 if (node.operation && apiList?.[node.api]?.[node.operation]) {
 				// clear parameters if operation has changed
@@ -6061,7 +6092,7 @@ function instance$9($$self, $$props, $$invalidate) {
 					}
 				}
 
-				$$invalidate(10, prevOperation = node.operation.toString());
+				$$invalidate(9, prevOperation = node.operation.toString());
 
 				// set valid content Types if operation is set
 				if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
@@ -6080,6 +6111,7 @@ function instance$9($$self, $$props, $$invalidate) {
 				}
 
 				let operationData = apiList[node.api][node.operation];
+				console.log("apiList", apiList);
 				$$invalidate(2, parameterList = operationData.parameters);
 
 				// openApi 3 new body style with selection // Warning: Experimental
@@ -6092,11 +6124,15 @@ function instance$9($$self, $$props, $$invalidate) {
 								name: "Request body",
 								in: "",
 								schema: requestBodies[node.contentType].schema,
-								required: operationData.requestBody.required || false,
-								inputType: "json",
-								type: "json"
+								value: "{}",
+								required: operationData?.requestBody?.required || false,
+								inputType: "json", // original type
+								type: "json", // selected type
+								
 							}
 						]);
+
+						$$invalidate(2, parameterList[0].allowedTypes = getAllowedTypes("json"), parameterList);
 					}
 				}
 
@@ -6105,6 +6141,8 @@ function instance$9($$self, $$props, $$invalidate) {
 				} else {
 					// create object in node.parameters (if it doesn't exists)
 					parameterList.forEach(param => {
+						console.log("param", param);
+
 						if (!node.parameters?.[param.in + param.name]) {
 							$$invalidate(
 								0,
@@ -6112,18 +6150,21 @@ function instance$9($$self, $$props, $$invalidate) {
 									name: param.name,
 									in: param.in,
 									required: param.required,
-									value: "hello world",
+									value: "",
 									isActive: param.required || false,
-									inputType: "str",
-									type: "str"
+									inputType: setCorrectType(param), // original type
+									type: setCorrectType(param), // selected type
+									
 								},
 								node
 							);
+
+							$$invalidate(0, node.parameters[param.in + param.name].allowedTypes = getAllowedTypes(node.parameters[param.in + param.name].inputType), node);
 						}
 					});
 				}
 
-				console.log("pL: ", parameterList);
+				console.log("node.param:", node.parameters);
 			}
 		}
 	};
@@ -6135,7 +6176,6 @@ function instance$9($$self, $$props, $$invalidate) {
 		error,
 		apis,
 		operations,
-		boolInputTypes,
 		createApi,
 		errorHandlingOptions,
 		apiList,
@@ -6146,7 +6186,6 @@ function instance$9($$self, $$props, $$invalidate) {
 		select1_node_binding,
 		select2_node_binding,
 		select3_node_binding,
-		typedinput_node_binding,
 		change_handler,
 		editablelist_elements_binding
 	];

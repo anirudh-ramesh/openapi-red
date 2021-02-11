@@ -3,23 +3,13 @@
     category: 'network',
     color: '#b197ff',
     defaults: {
-      test: { value: '', label: 'Test'},
       name: 			{ value: '',  label: 'Name' },
       openApiUrl: { value: '',  label: 'URL' },
       api:        { value: '',  label: 'API tag' },
       operation:  { value: 'application/json',  label: 'Operation'},
       operationData: {value: {}},
       errorHandling: {value: '',label: 'Error handling'},
-      parameters: { value: {},  label: 'Parameters',
-    //    validate: function(v) { 
-    //     const isValid = true
-    //     for (const parameter in this.parameters) {
-    //       const param = this.parameters[parameter]
-    //       if (param.required && param.value.toString() === '') isValid = false
-    //     }
-    //     return isValid
-    //   }
-      },
+      parameters: { value: {},  label: 'Parameters'},
       contentType: {value: '',  label: 'Content Type'},
       outputs: {value: 1}
     },
@@ -44,7 +34,6 @@
 <script>
 export let node
 import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from 'svelte-integration-red/components'
-import ConfigNodeInput from 'svelte-integration-red/components/ConfigNodeInput.svelte'
 import { getApiList, objectHasValues} from './utils/htmlFunctions'
 
 let apiList = {}
@@ -56,6 +45,23 @@ if (node.operation) prevOperation = node.operation.toString()
 let contentTypes = []
 let parameterList = []
 let boolInputTypes = ['msg', 'flow', 'global','bool', 'str']
+
+const getCorrectType = (param) => {
+  let type = param?.schema?.type
+  if (type === 'boolean') return 'bool'
+  if (type === 'integer') return 'num'
+  if (param.name === 'Json Request Body' || param.name === 'body' || type === 'body' || type === 'object') return 'json'
+  if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return 'array'
+  return 'str'
+}
+
+const getAllowedTypes = (type) => {
+  if (type === 'bool') return ['bool', 'msg', 'flow', 'global']
+  if (type === 'num') return ['num', 'jsonata', 'msg', 'flow', 'global']
+  if (type === 'json') return ['json', 'jsonata', 'msg', 'flow', 'global']
+  return ['str', 'json', 'jsonata', 'msg', 'flow', 'global']
+}
+
 
 const createApi = async () => {
   try {
@@ -112,6 +118,7 @@ $: if (node.operation && apiList?.[node.api]?.[node.operation]) {
     node.contentType = contentTypes[0]
   }
   let operationData = apiList[node.api][node.operation]
+  console.log("apiList", apiList)
   parameterList = operationData.parameters
   // openApi 3 new body style with selection // Warning: Experimental
   if (!parameterList && operationData?.requestBody?.content) {
@@ -121,10 +128,12 @@ $: if (node.operation && apiList?.[node.api]?.[node.operation]) {
       name: "Request body",
       in: "",
       schema:  requestBodies[node.contentType].schema,
-      required: operationData.requestBody.required || false,
-      inputType: 'json',
-      type: 'json'
+      value: "{}",
+      required: operationData?.requestBody?.required || false,
+      inputType: 'json', // original type
+      type: 'json', // selected type
       }]
+      parameterList[0].allowedTypes = getAllowedTypes('json')
     }
   }
   if (undefined === parameterList) {
@@ -132,20 +141,22 @@ $: if (node.operation && apiList?.[node.api]?.[node.operation]) {
   } else {
     // create object in node.parameters (if it doesn't exists)
     parameterList.forEach(param => {
+      console.log("param", param)
       if (!node.parameters?.[param.in + param.name]) {
         node.parameters[param.in + param.name] = {
           name: param.name,
           in: param.in,
           required: param.required,
-          value: 'hello world',
+          value: '',
           isActive: param.required || false,
-          inputType: 'str',
-          type: 'str'
+          inputType: getCorrectType(param), // original type
+          type: getCorrectType(param), // selected type
         }
+        node.parameters[param.in + param.name].allowedTypes = getAllowedTypes( node.parameters[param.in + param.name].inputType)
       }
     })
   }
-  console.log("pL: ", parameterList)
+  console.log("node.param:", node.parameters)
 }
 
 const setError = (message, error) => {
@@ -199,19 +210,27 @@ const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
   {/each}
 </Select>
 Parameters
-<TypedInput bind:node prop="test" typeProp="testTypeProp" types={boolInputTypes} />
 <!-- <TypedInput bind:node prop="content" typeProp="contentType" bind:types={contentTypes} /> -->
-{#if parameterList.length > 0}
-  <EditableList bind:elements={parameterList} let:element={currentParameter} let:index sortable=false addButton=true removable=false style="height: 400px;">
-      {currentParameter.name} + {node.parameters[currentParameter.in + currentParameter.name].value}
-  <TypedInput prop={currentParameter.in + currentParameter.name} label={node.parameters[currentParameter.in + currentParameter.name].name}
-      type={node.parameters[currentParameter.in + currentParameter.name].inputType}
-      types={boolInputTypes}
-      value={node.parameters[currentParameter.in + currentParameter.name].value}
-      id={currentParameter.name + "_" + index}
+<!-- {#if parameterList.length > 0} -->
+{#if Object.keys(node.parameters).length > 0}
+  <EditableList bind:elements={parameterList} let:element={param} let:index sortable=false addButton=false removable=false style="height: 400px;">
+      <div>{node.parameters[param]}</div>
+      {param} + {param.name} + {node.parameters[param.in + param.name].value} + {node.parameters[param.in + param.name].type}
+  <!-- <TypedInput prop={param.in + param.name} label={node.parameters[param.in + param.name].name}
+      bind:types={node.parameters[param.in + param.name].allowedTypes}
+      bind:type={node.parameters[param.in + param.name].type}
+      bind:value={node.parameters[param.in + param.name].value}
+      id={param.name.replace(" ", "_") + "_" + index}
+    /> -->
+    <TypedInput prop={param.in + param.name} label={node.parameters[param.in + param.name].name}
+      types={node.parameters[param.in + param.name].allowedTypes}
+      type={node.parameters[param.in + param.name].type}
+      value={node.parameters[param.in + param.name].value}
+      id={param.name.replace(" ", "_") + "_" + index}
       on:change={(e) => {
-        node.parameters[currentParameter.in + currentParameter.name].value = e.detail.value
-        node.parameters[currentParameter.in + currentParameter.name].inputType = e.detail.type
+        console.log("changed", e)
+        node.parameters[param.in + param.name].value = e.detail.value
+        node.parameters[param.in + param.name].type = e.detail.type
         }
       }
     />
@@ -223,6 +242,6 @@ Parameters
           </Row>
       </Collapsible> -->
   </EditableList>
-  {:else}
-    <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
-  {/if}
+{:else}
+  <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
+{/if}
