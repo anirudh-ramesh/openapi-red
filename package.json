@@ -37,6 +37,6 @@
   },
   "devDependencies": {
     "standard": "^16.0.3",
-    "svelte-integration-red": "^0.1.30"
+    "svelte-integration-red": "^0.1.34"
   }
 }

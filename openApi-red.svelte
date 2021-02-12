@@ -6,10 +6,10 @@
       name: 			{ value: '',  label: 'Name' },
       openApiUrl: { value: '',  label: 'URL' },
       api:        { value: '',  label: 'API tag' },
-      operation:  { value: 'application/json',  label: 'Operation'},
+      operation:  { value: '',  label: 'Operation'},
       operationData: {value: {}},
       errorHandling: {value: '',label: 'Error handling'},
-      parameters: { value: {},  label: 'Parameters'},
+      parameters: { value: [],  label: 'Parameters'},
       contentType: {value: '',  label: 'Content Type'},
       outputs: {value: 1}
     },
@@ -34,7 +34,7 @@
 <script>
 export let node
 import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from 'svelte-integration-red/components'
-import { getApiList, objectHasValues} from './utils/htmlFunctions'
+import { getApiList} from './utils/htmlFunctions'
 
 let apiList = {}
 let error = ''
@@ -43,11 +43,9 @@ let operations = {}
 let prevOperation
 if (node.operation) prevOperation = node.operation.toString()
 let contentTypes = []
-let parameterList = []
-let boolInputTypes = ['msg', 'flow', 'global','bool', 'str']
 
 const getCorrectType = (param) => {
-  let type = param?.schema?.type
+  let type = param?.schema?.type || param.type
   if (type === 'boolean') return 'bool'
   if (type === 'integer') return 'num'
   if (param.name === 'Json Request Body' || param.name === 'body' || type === 'body' || type === 'object') return 'json'
@@ -83,11 +81,6 @@ const createApi = async () => {
   error = error  
 }
 if (node.openApiUrl.toString().trim()) createApi()
-// node.api = node.api
-// node.operation = node.operation
-// node.contentType = node.contentType
-
-console.log("afterFirstCreate", node)
 
 // set valid operations if api is set
 $: if (node.api && apiList?.[node.api]) {
@@ -98,68 +91,63 @@ $: if (node.api && apiList?.[node.api]) {
 }
 
 // create content type selection and parameter list
-$: if (node.operation && apiList?.[node.api]?.[node.operation]) {
+$: if (node.operation) {
+    // set valid content Types if operation is set
+    if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
+      contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
+    } else {
+      // needed input since an update from swagger.js
+      contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
+    }
+    if (!node.contentType || !contentTypes.includes(node.contentType)) {
+      node.contentType = contentTypes[0]
+    }
+
   // clear parameters if operation has changed
   if (prevOperation !== node.operation) {
-    for (let prop in node.parameters) {
-      delete node.parameters[prop]
-    }
-  }
-  prevOperation = node.operation.toString()
+    console.log(prevOperation, node.operation)
+    node.parameters.length = 0
+    prevOperation = node.operation.toString()
 
-  // set valid content Types if operation is set
-  if (node.operation && apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
-    contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
-  } else {
-    // needed input since an update from swagger.js
-    contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
-  }
-  if (!node.contentType || !contentTypes.includes(node.contentType)) {
-    node.contentType = contentTypes[0]
-  }
-  let operationData = apiList[node.api][node.operation]
-  console.log("apiList", apiList)
-  parameterList = operationData.parameters
-  // openApi 3 new body style with selection // Warning: Experimental
-  if (!parameterList && operationData?.requestBody?.content) {
-    let requestBodies = operationData.requestBody.content
-    if (requestBodies[node.contentType]) {
-      parameterList = [{
-      name: "Request body",
-      in: "",
-      schema:  requestBodies[node.contentType].schema,
-      value: "{}",
-      required: operationData?.requestBody?.required || false,
-      inputType: 'json', // original type
-      type: 'json', // selected type
-      }]
-      parameterList[0].allowedTypes = getAllowedTypes('json')
-    }
-  }
-  if (undefined === parameterList) {
-    parameterList = []
-  } else {
-    // create object in node.parameters (if it doesn't exists)
-    parameterList.forEach(param => {
-      console.log("param", param)
-      if (!node.parameters?.[param.in + param.name]) {
-        node.parameters[param.in + param.name] = {
-          name: param.name,
-          in: param.in,
-          required: param.required,
-          value: '',
-          isActive: param.required || false,
-          inputType: getCorrectType(param), // original type
-          type: getCorrectType(param), // selected type
-        }
-        node.parameters[param.in + param.name].allowedTypes = getAllowedTypes( node.parameters[param.in + param.name].inputType)
+    let operationData = apiList[node.api][node.operation]
+    console.log("apiList", apiList)
+    console.log("node", node)
+    // openApi 3 new body style with selection // Warning: Experimental
+    if (!operationData.parameters && operationData?.requestBody?.content) {
+      let requestBodies = operationData.requestBody.content
+      if (requestBodies[node.contentType]) {
+        node.parameters.push({
+          name: "Request body",
+          in: "",
+          schema:  requestBodies[node.contentType].schema,
+          value: "{}",
+          required: operationData?.requestBody?.required || false,
+          type: 'json',
+          allowedTypes: getAllowedTypes('json')
+        })
       }
-    })
+    } else {
+      // create object in node.parameters (if it doesn't exists)
+      operationData.parameters.forEach(param => {
+        console.log("param", param)
+        node.parameters.push(
+          {
+            name: param.name,
+            in: param.in,
+            required: param.required,
+            value: '',
+            isActive: param.required || false,
+            type: getCorrectType(param), // selected type
+            allowedTypes: getAllowedTypes(getCorrectType(param))
+          }
+        )
+      })
+    }   
   }
   console.log("node.param:", node.parameters)
 }
 
-const setError = (message, error) => {
+const setError = (message) => {
   apis = []
   operations = {}
   contentTypes = []
@@ -210,27 +198,19 @@ const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
   {/each}
 </Select>
 Parameters
-<!-- <TypedInput bind:node prop="content" typeProp="contentType" bind:types={contentTypes} /> -->
-<!-- {#if parameterList.length > 0} -->
-{#if Object.keys(node.parameters).length > 0}
-  <EditableList bind:elements={parameterList} let:element={param} let:index sortable=false addButton=false removable=false style="height: 400px;">
-      <div>{node.parameters[param]}</div>
-      {param} + {param.name} + {node.parameters[param.in + param.name].value} + {node.parameters[param.in + param.name].type}
-  <!-- <TypedInput prop={param.in + param.name} label={node.parameters[param.in + param.name].name}
-      bind:types={node.parameters[param.in + param.name].allowedTypes}
-      bind:type={node.parameters[param.in + param.name].type}
-      bind:value={node.parameters[param.in + param.name].value}
-      id={param.name.replace(" ", "_") + "_" + index}
-    /> -->
-    <TypedInput prop={param.in + param.name} label={node.parameters[param.in + param.name].name}
-      types={node.parameters[param.in + param.name].allowedTypes}
-      type={node.parameters[param.in + param.name].type}
-      value={node.parameters[param.in + param.name].value}
-      id={param.name.replace(" ", "_") + "_" + index}
+<!-- ask cg somehow add (param.in + param.name) -->
+{#if node.parameters.length > 0} 
+  <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
+    {param.name} + {param.value} + {param.type} + {index}
+    <TypedInput
+      label={param.name}
+      types={param.allowedTypes}
+      type={param.type}
+      value={param.value}
       on:change={(e) => {
         console.log("changed", e)
-        node.parameters[param.in + param.name].value = e.detail.value
-        node.parameters[param.in + param.name].type = e.detail.type
+        node.parameters[index].value = e.detail.value
+        node.parameters[index].type = e.detail.type
         }
       }
     />
