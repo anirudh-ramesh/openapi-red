@@ -106,8 +106,8 @@ $: if (node.operation) {
   // clear parameters if operation has changed
   if (prevOperation !== node.operation) {
     console.log(prevOperation, node.operation)
-    node.parameters.length = 0
-    prevOperation = node.operation.toString()
+    node.parameters = []
+    prevOperation = node.operation
 
     let operationData = apiList[node.api][node.operation]
     console.log("apiList", apiList)
@@ -132,6 +132,7 @@ $: if (node.operation) {
         console.log("param", param)
         node.parameters.push(
           {
+            id: param.name + param.in,
             name: param.name,
             in: param.in,
             required: param.required,
