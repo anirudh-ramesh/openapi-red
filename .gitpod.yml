@@ -1,4 +1,5 @@
 tasks:
   - before: cd /home/gitpod/.nvm/versions/node/*/lib/node_modules/node-red/ && npm link /workspace/openapi-red/ && cd /workspace/openapi-red/
+  - command: node-red examples/openApi-petstore.json
 image:
   file: .gitpod.Dockerfile
