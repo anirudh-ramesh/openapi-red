@@ -39,7 +39,7 @@
  <script>
  export let node
  import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from "svelte-integration-red/components"
- import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys} from "./utils/htmlFunctions"
+ import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys, orderRequired} from "./utils/htmlFunctions"
  
  let apiList = {}
  let error = ""
@@ -102,53 +102,56 @@ const setError = (message) => {
   if (!node.contentType || !contentTypes.includes(node.contentType)) {
     node.contentType = contentTypes[0]
   }
- 
   // clear parameters if operation has changed
   if (prevOperation !== node.operation) {
-    //  node.parameters = []
-    console.log(1, node.parameters)
-    node.parameters.splice(0, node.parameters.length)
-    console.log(2, node.parameters)
-      
+    node.parameters.splice(0, node.parameters.length)      
     prevOperation = node.operation
     let operationData = apiList[node.api][node.operation]
+    node.operationData = apiList[node.api][node.operation]
     // openApi 3 new body style with selection // Warning: Experimental
     if (!operationData.parameters && operationData?.requestBody?.content) {
-      let content = operationData.requestBody.content
+      let requestBody = operationData.requestBody
+      let content = requestBody.content
       let keys = sortKeys(content[node.contentType].schema)
       if (content[node.contentType]) {
         node.parameters.push({
+          id: "requestBody",
           name: "Request body",
           in: "",
-          schema:  content[node.contentType].schema,
+          schema:  content[node.contentType].schema || null,
           value: "{}",
-          required: operationData?.requestBody?.required || false,
+          required: !!requestBody?.required || false,
+          isActive: !!requestBody?.required || false,
+          description: requestBody?.description || "-",
           type: "json",
           allowedTypes: getAllowedTypes("json"),
           keys
         })
       }
     } else {
-      operationData.parameters.forEach(param => {
+      let parameters = operationData.parameters.sort(orderRequired)
+      parameters.forEach(param => {
       let keys = sortKeys(param.schema)       
         node.parameters.push(
           {
+            id: param.name + param.in,
             name: param.name,
             in: param.in,
             required: param.required,
             value: "",
-            isActive: param.required || false,
+            isActive: !!param.required || false,
             type: getCorrectType(param), // selected type
-            allowedTypes: getAllowedTypes(getCorrectType(param)),
+            allowedTypes: getAllowedTypes(param),
             description: param.description,
-            schema: param.schema,
+            schema: param.schema || null,
             keys
           }
         )
       })
     }
-    node.parameters = node.parameters
-   }
+    console.log("OP: ", operationData)
+  console.log("nP: ", node.parameters)
+  }
  }
 
  const errorHandlingOptions = ["Standard", "other output", "throw exception"]
@@ -224,14 +227,14 @@ const setError = (message) => {
  {#if node.parameters.length > 0} 
   <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
      <div class:required={param.required} style="display:flex; margin-top: -21px; margin-bottom: -10px" > <!-- workaround because SIR creates a checkbox with a huge fix margin-top -->
-        <div style="min-width: 104px;">
+        <div style="min-width: 99px;">
           <Input type="checkbox" label={param.name} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
         </div>
-      <div style="margin-left: 10px; margin-top: 21px;"> <!-- workaround css styling-->
+      <div style="margin-left: 15px; margin-top: 21px;"> <!-- workaround css styling-->
         {param.description}
       </div>
     </div>
-    <TypedInput label={"Value"} types={param.allowedTypes} type={param.type} value={param.value} id={param.name+param.in} disabled={param.isActive}
+    <TypedInput label={"Value"} types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive}
       on:change={(e) => {
         node.parameters[index].value = e.detail.value
         node.parameters[index].type = e.detail.type
@@ -239,7 +242,7 @@ const setError = (message) => {
     }
     />
     <!-- Json Object additional information and helper buttons-->
-    {#if param.schema}
+    {#if param.schema && param.schema.type === "object"}
       <div style="margin-left: 104px;">
         <Collapsible icon="sticky-note" label={"json parameters"}>
           <Row>

@@ -22,10 +22,17 @@ export const getCorrectType = (param) => {
   return "str"
 }
 
-export const getAllowedTypes = (type) => {
+export const getAllowedTypes = (input) => {
+  let type
+  if (typeof input === "string") type = input
+  else type = getCorrectType(input)
   if (type === "bool") return ["bool", "msg", "flow", "global"]
   if (type === "num") return ["num", "jsonata", "msg", "flow", "global"]
   if (type === "json") return ["json", "jsonata", "msg", "flow", "global"]
+  if (type === "array") {
+    let options = input?.items?.enum || input?.schema?.enum
+    return [{value: "select", label: "Select", options: options},"str", "msg", "flow", "global"]
+  }
   return ["str", "json", "jsonata", "msg", "flow", "global"]
 }
 
@@ -34,13 +41,12 @@ export const setJsonKeys = (param, option) => {
   let notRequired = []
   let exists = []
   const propKeys = Object.keys(param.schema.properties)
-  let currentValue = window.$("#node-input-" + param.name + param.in).typedInput("value")
+  let currentValue = window.$("#node-input-" + param.id).typedInput("value")
   try {
     currentValue = JSON.parse(currentValue)
   } catch {
     currentValue = {}
   }
-
   propKeys.forEach(prop => {
     if (currentValue[prop]) {
       exists.push(`"${prop}": "${currentValue[prop]}"`)
@@ -62,9 +68,10 @@ export const setJsonKeys = (param, option) => {
   result += "}"
   // node.parameters[index].value = notRequired.join(", ")
   // jQuery because setting node.parameters[index].value does not work
-  window.$("#node-input-" + param.name + param.in).typedInput("value", result)    
+  window.$("#node-input-" + param.id).typedInput("value", result)    
 }
 
+// is an object
 export const sortKeys = (schema) => {
   let keys = null
   if (schema?.properties) {
@@ -76,4 +83,14 @@ export const sortKeys = (schema) => {
     }
   }
   return keys
+}
+// is an array
+export const orderRequired = (a, b) => {
+  let comparison = 0;
+  if (b.required) {
+    comparison = 1;
+  } else if (a.required) {
+    comparison = -1;
+  }
+  return comparison;
 }
