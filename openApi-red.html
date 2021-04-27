@@ -3177,7 +3177,7 @@ function create_else_block$2(ctx) {
 	};
 }
 
-// (73:19) 
+// (78:19) 
 function create_if_block_3$2(ctx) {
 	let span;
 
@@ -3197,7 +3197,7 @@ function create_if_block_3$2(ctx) {
 	};
 }
 
-// (71:15) 
+// (76:15) 
 function create_if_block_2$2(ctx) {
 	let span;
 
@@ -3217,7 +3217,7 @@ function create_if_block_2$2(ctx) {
 	};
 }
 
-// (67:0) {#if !updateNode || (prop && typeProp)}
+// (72:0) {#if !updateNode || (prop && typeProp)}
 function create_if_block$6(ctx) {
 	let label_1;
 	let t0;
@@ -3330,7 +3330,7 @@ function create_if_block$6(ctx) {
 	};
 }
 
-// (68:61) {#if icon}
+// (73:61) {#if icon}
 function create_if_block_1$3(ctx) {
 	let i;
 	let i_class_value;
@@ -3450,6 +3450,18 @@ function instance$6($$self, $$props, $$invalidate) {
 			if (updateNode) {
 				$$invalidate(10, node[prop] = value, node);
 				$$invalidate(10, node[typeProp] = type, node);
+			}
+
+			// the validation of typedInput fields will not be set automaticlly. Therefor we put it
+			// in the default validate. This must be be copied in the build-html.js update function.
+			if (node?._def?.defaults?.[id] && !node?._def?.defaults?.[id].validate) {
+				$$invalidate(
+					10,
+					node._def.defaults[id].validate = v => {
+						return window.$("#node-input-" + id).typedInput("validate");
+					},
+					node
+				);
 			}
 
 			dispatch("change", { id, value, type });
@@ -5948,55 +5960,63 @@ class Select extends SvelteComponent {
 	}
 }
 
-async function getApiList(openApiUrl) {
-  let url = encodeURI(openApiUrl);
+async function getApiList (openApiUrl) {
+  const url = encodeURI(openApiUrl);
   // server call
-  return $.get( "getNewOpenApiInfo?openApiUrl=" + url, function(response) {
+  return window.$.get('getNewOpenApiInfo?openApiUrl=' + url, function (response) {
     return response
   })
-  .fail(function(message) {
-    return message
-  })
+    .fail(function (message) {
+      return message
+    })
 }
 
 const getCorrectType = (param) => {
-  let type = param?.schema?.type || param.type;
-  if (type === "boolean") return "bool"
-  if (type === "integer") return "num"
-  if (param.name === "Json Request Body" || param.name === "body" || type === "body" || type === "object") return "json"
-  if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return "array"
-  return "str"
+  const type = param?.schema?.type || param.type;
+  if (type === 'boolean') return 'bool'
+  if (type === 'integer') return 'num'
+  if (param.name === 'Json Request Body' || param.name === 'body' || type === 'body' || type === 'object') return 'json'
+  if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return 'array'
+  return 'str'
 };
 
 const getAllowedTypes = (input) => {
   let type;
-  if (typeof input === "string") type = input;
+  if (typeof input === 'string') type = input;
   else type = getCorrectType(input);
-  if (type === "bool") return ["bool", "msg", "flow", "global"]
-  if (type === "num") return ["num", "jsonata", "msg", "flow", "global"]
-  if (type === "json") return ["json", "jsonata", "msg", "flow", "global"]
-  if (type === "array") {
-    let options = input?.items?.enum || input?.schema?.enum;
-    return [{value: "select", label: "Select", options: options},"str", "msg", "flow", "global"]
+  if (type === 'bool') return ['bool', 'msg', 'flow', 'global']
+  if (type === 'num') return ['num', 'jsonata', 'msg', 'flow', 'global']
+  if (type === 'json') return ['json', 'jsonata', 'msg', 'flow', 'global']
+  if (type === 'array') {
+    const options = input?.items?.enum || input?.schema?.enum;
+    return [{ value: 'select', label: 'Select', options: options }, 'str', 'msg', 'flow', 'global']
   }
-  return ["str", "json", "jsonata", "msg", "flow", "global"]
+  return ['str', 'json', 'jsonata', 'msg', 'flow', 'global']
 };
 
 const setJsonKeys = (param, option) => {
-  let required = [];
-  let notRequired = [];
-  let exists = [];
+  const required = [];
+  const notRequired = [];
+  const exists = [];
   const propKeys = Object.keys(param.schema.properties);
-  let currentValue = window.$("#node-input-" + param.id).typedInput("value");
-  console.log(param.id, currentValue);
+  let fieldValue = window.$('#node-input-' + param.id).typedInput('value');
   try {
-    currentValue = JSON.parse(currentValue);
+    fieldValue = JSON.parse(fieldValue);
   } catch {
-    currentValue = {};
+    fieldValue = {};
   }
+
   propKeys.forEach(prop => {
-    if (currentValue[prop]) {
-      exists.push(`"${prop}": "${currentValue[prop]}"`);
+    if (fieldValue[prop]) {
+      const value = fieldValue[prop];
+      // chk if value is empty array or object -> would return "" otherwise
+      if (typeof value === 'object') {
+        if (Array.isArray(value) && value.length === 0) exists.push(`"${prop}": []`);
+        else if (Object.keys(value).length === 0) exists.push(`"${prop}": {}`);
+        else exists.push(`"${prop}": "${value}"`);
+      } else {
+        exists.push(`"${prop}": "${value}"`);
+      }
     } else {
       let isRequired = false;
       if (param.schema.required) isRequired = param.schema.required.find(reqParam => reqParam === prop);
@@ -6007,15 +6027,12 @@ const setJsonKeys = (param, option) => {
       }
     }
   });
-  let result = "{";
-  if (required.length > 0) result += required.join(", ") + ", ";
-  if (exists.length > 0) result += exists.join(", ") + ", ";
-  if (option === "default" && notRequired.length > 0) result += notRequired.join(", ");
-  if (result.trim().endsWith(",")) result = result.trim().slice(0, -1);
-  result += "}";
-  // node.parameters[index].value = notRequired.join(", ")
+
+  let result = required.concat(exists);
+  if (option === 'default') result = result.concat(notRequired);
+  result = '{' + result.join(', ') + '}';
   // jQuery because setting node.parameters[index].value does not work
-  window.$("#node-input-" + param.id).typedInput("value", result);    
+  window.$('#node-input-' + param.id).typedInput('value', result);
 };
 
 // is an object
@@ -6025,8 +6042,8 @@ const sortKeys = (schema) => {
     // ordering keys helps later with svelte #each (first required then normal and sorted alphabetical)
     keys = Object.keys(schema.properties).sort();
     if (schema.required) {
-    let notRequiredKeys = keys.filter(prop => !schema.required.includes(prop));
-    keys = schema.required.sort().concat(notRequiredKeys.sort());
+      const notRequiredKeys = keys.filter(prop => !schema.required.includes(prop));
+      keys = schema.required.sort().concat(notRequiredKeys.sort());
     }
   }
   return keys
@@ -6039,73 +6056,73 @@ const orderRequired = (a, b) => {
   } else if (a.required) {
     comparison = -1;
   }
-  return comparison;
+  return comparison
 };
 
 /* openApi-red.svelte generated by Svelte v3.35.0 */
 
 function add_css() {
 	var style = element("style");
-	style.id = "svelte-1dp2mq6-style";
-	style.textContent = ".required, .required label{color:red;font-weight:bold!important}.urlInput label{width:104px}.jsonKeys.svelte-1dp2mq6{display:none}";
+	style.id = "svelte-1jskp0d-style";
+	style.textContent = "#openApi-red .required, #openApi-red .required label{font-weight:bold!important}#openApi-red .urlInput label{width:104px}#openApi-red #node-input-openApiUrl{width:70%\n  }#openApi-red .red-ui-editableList-item-content div{margin-top:2px !important;margin-bottom:0px !important}.jsonObjectKeyList.svelte-1jskp0d{margin-bottom:0px}.jsonKeys.svelte-1jskp0d{display:none}";
 	append(document.head, style);
 }
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[27] = list[i];
+	child_ctx[28] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[30] = list[i][0];
-	child_ctx[31] = list[i][1];
+	child_ctx[31] = list[i][0];
+	child_ctx[32] = list[i][1];
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[30] = list[i][0];
-	child_ctx[31] = list[i][1];
+	child_ctx[31] = list[i][0];
+	child_ctx[32] = list[i][1];
 	return child_ctx;
 }
 
 function get_each_context_3(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[36] = list[i];
+	child_ctx[37] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_4(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[39] = list[i][0];
+	child_ctx[40] = list[i][0];
 	return child_ctx;
 }
 
 function get_each_context_5(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[42] = list[i];
+	child_ctx[43] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_6(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[45] = list[i];
+	child_ctx[46] = list[i];
 	return child_ctx;
 }
 
-// (182:3) {#each errorHandlingOptions as eOption}
+// (213:4) {#each errorHandlingOptions as eOption}
 function create_each_block_6(ctx) {
 	let option;
-	let t_value = /*eOption*/ ctx[45] + "";
+	let t_value = /*eOption*/ ctx[46] + "";
 	let t;
 
 	return {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = /*eOption*/ ctx[45];
+			option.__value = /*eOption*/ ctx[46];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -6119,7 +6136,7 @@ function create_each_block_6(ctx) {
 	};
 }
 
-// (181:1) <Select bind:node prop="errorHandling" >
+// (212:2) <Select bind:node prop="errorHandling" >
 function create_default_slot_6(ctx) {
 	let each_1_anchor;
 	let each_value_6 = /*errorHandlingOptions*/ ctx[8];
@@ -6175,10 +6192,10 @@ function create_default_slot_6(ctx) {
 	};
 }
 
-// (193:9) {:else}
+// (224:7) {:else}
 function create_else_block_4(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[42] + "";
+	let t_value = /*api*/ ctx[43] + "";
 	let t;
 	let option_value_value;
 
@@ -6186,7 +6203,7 @@ function create_else_block_4(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[42];
+			option.__value = option_value_value = /*api*/ ctx[43];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -6194,9 +6211,9 @@ function create_else_block_4(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*apis*/ 8 && t_value !== (t_value = /*api*/ ctx[42] + "")) set_data(t, t_value);
+			if (dirty[0] & /*apis*/ 8 && t_value !== (t_value = /*api*/ ctx[43] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*apis*/ 8 && option_value_value !== (option_value_value = /*api*/ ctx[42])) {
+			if (dirty[0] & /*apis*/ 8 && option_value_value !== (option_value_value = /*api*/ ctx[43])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6207,10 +6224,10 @@ function create_else_block_4(ctx) {
 	};
 }
 
-// (191:9) {#if node.api === api}
+// (222:7) {#if node.api === api}
 function create_if_block_11(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[42] + "";
+	let t_value = /*api*/ ctx[43] + "";
 	let t;
 	let option_value_value;
 
@@ -6218,7 +6235,7 @@ function create_if_block_11(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[42];
+			option.__value = option_value_value = /*api*/ ctx[43];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -6227,9 +6244,9 @@ function create_if_block_11(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*apis*/ 8 && t_value !== (t_value = /*api*/ ctx[42] + "")) set_data(t, t_value);
+			if (dirty[0] & /*apis*/ 8 && t_value !== (t_value = /*api*/ ctx[43] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*apis*/ 8 && option_value_value !== (option_value_value = /*api*/ ctx[42])) {
+			if (dirty[0] & /*apis*/ 8 && option_value_value !== (option_value_value = /*api*/ ctx[43])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6240,12 +6257,12 @@ function create_if_block_11(ctx) {
 	};
 }
 
-// (190:3) {#each apis as api}
+// (221:5) { #each apis as api}
 function create_each_block_5(ctx) {
 	let if_block_anchor;
 
 	function select_block_type(ctx, dirty) {
-		if (/*node*/ ctx[0].api === /*api*/ ctx[42]) return create_if_block_11;
+		if (/*node*/ ctx[0].api === /*api*/ ctx[43]) return create_if_block_11;
 		return create_else_block_4;
 	}
 
@@ -6281,7 +6298,7 @@ function create_each_block_5(ctx) {
 	};
 }
 
-// (188:1) <Select bind:node prop="api" >
+// (219:2) <Select bind:node prop="api" >
 function create_default_slot_5(ctx) {
 	let option;
 	let t;
@@ -6349,10 +6366,10 @@ function create_default_slot_5(ctx) {
 	};
 }
 
-// (204:6) {:else}
+// (235:9) {:else}
 function create_else_block_3(ctx) {
 	let option;
-	let t_value = /*operations*/ ctx[4][/*key*/ ctx[39]].summary + "";
+	let t_value = /*operations*/ ctx[4][/*key*/ ctx[40]].summary + "";
 	let t;
 	let option_value_value;
 
@@ -6360,7 +6377,7 @@ function create_else_block_3(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*operations*/ ctx[4][/*key*/ ctx[39]].operationId;
+			option.__value = option_value_value = /*operations*/ ctx[4][/*key*/ ctx[40]].operationId;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -6368,9 +6385,9 @@ function create_else_block_3(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*operations*/ 16 && t_value !== (t_value = /*operations*/ ctx[4][/*key*/ ctx[39]].summary + "")) set_data(t, t_value);
+			if (dirty[0] & /*operations*/ 16 && t_value !== (t_value = /*operations*/ ctx[4][/*key*/ ctx[40]].summary + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*operations*/ 16 && option_value_value !== (option_value_value = /*operations*/ ctx[4][/*key*/ ctx[39]].operationId)) {
+			if (dirty[0] & /*operations*/ 16 && option_value_value !== (option_value_value = /*operations*/ ctx[4][/*key*/ ctx[40]].operationId)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6381,10 +6398,10 @@ function create_else_block_3(ctx) {
 	};
 }
 
-// (202:10) {#if node.operation === operations[key].operationId}
+// (233:9) {#if node.operation === operations[key].operationId}
 function create_if_block_10(ctx) {
 	let option;
-	let t_value = /*operations*/ ctx[4][/*key*/ ctx[39]].summary + "";
+	let t_value = /*operations*/ ctx[4][/*key*/ ctx[40]].summary + "";
 	let t;
 	let option_value_value;
 
@@ -6392,7 +6409,7 @@ function create_if_block_10(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*operations*/ ctx[4][/*key*/ ctx[39]].operationId;
+			option.__value = option_value_value = /*operations*/ ctx[4][/*key*/ ctx[40]].operationId;
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -6401,9 +6418,9 @@ function create_if_block_10(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*operations*/ 16 && t_value !== (t_value = /*operations*/ ctx[4][/*key*/ ctx[39]].summary + "")) set_data(t, t_value);
+			if (dirty[0] & /*operations*/ 16 && t_value !== (t_value = /*operations*/ ctx[4][/*key*/ ctx[40]].summary + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*operations*/ 16 && option_value_value !== (option_value_value = /*operations*/ ctx[4][/*key*/ ctx[39]].operationId)) {
+			if (dirty[0] & /*operations*/ 16 && option_value_value !== (option_value_value = /*operations*/ ctx[4][/*key*/ ctx[40]].operationId)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6414,12 +6431,12 @@ function create_if_block_10(ctx) {
 	};
 }
 
-// (201:6) {#each Object.entries(operations) as [key]}
+// (232:7) {#each Object.entries(operations) as [key]}
 function create_each_block_4(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_1(ctx, dirty) {
-		if (/*node*/ ctx[0].operation === /*operations*/ ctx[4][/*key*/ ctx[39]].operationId) return create_if_block_10;
+		if (/*node*/ ctx[0].operation === /*operations*/ ctx[4][/*key*/ ctx[40]].operationId) return create_if_block_10;
 		return create_else_block_3;
 	}
 
@@ -6455,7 +6472,7 @@ function create_each_block_4(ctx) {
 	};
 }
 
-// (199:2) <Select bind:node prop="operation" inline>
+// (230:3) <Select bind:node prop="operation" inline>
 function create_default_slot_4(ctx) {
 	let option;
 	let t;
@@ -6523,7 +6540,7 @@ function create_default_slot_4(ctx) {
 	};
 }
 
-// (209:2) {#if {operationDescription} }
+// (240:3) {#if {operationDescription} }
 function create_if_block_9(ctx) {
 	let div2;
 	let div0;
@@ -6535,12 +6552,12 @@ function create_if_block_9(ctx) {
 		c() {
 			div2 = element("div");
 			div0 = element("div");
-			div0.textContent = "Description:";
+			div0.textContent = "Description";
 			t1 = space();
 			div1 = element("div");
 			t2 = text(/*operationDescription*/ ctx[5]);
 			set_style(div0, "min-width", "104px");
-			set_style(div1, "widht", "70%");
+			set_style(div1, "width", "70%");
 			set_style(div2, "display", "flex");
 			set_style(div2, "margin-bottom", "12px");
 		},
@@ -6560,10 +6577,10 @@ function create_if_block_9(ctx) {
 	};
 }
 
-// (221:9) {:else}
+// (252:5) {:else}
 function create_else_block_2(ctx) {
 	let option;
-	let t_value = /*contentType*/ ctx[36] + "";
+	let t_value = /*contentType*/ ctx[37] + "";
 	let t;
 	let option_value_value;
 
@@ -6571,7 +6588,7 @@ function create_else_block_2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*contentType*/ ctx[36];
+			option.__value = option_value_value = /*contentType*/ ctx[37];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -6579,9 +6596,9 @@ function create_else_block_2(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[36] + "")) set_data(t, t_value);
+			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[37] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[36])) {
+			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[37])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6592,10 +6609,10 @@ function create_else_block_2(ctx) {
 	};
 }
 
-// (219:9) {#if node.contentType === contentType}
+// (250:5) {#if node.contentType === contentType}
 function create_if_block_8(ctx) {
 	let option;
-	let t_value = /*contentType*/ ctx[36] + "";
+	let t_value = /*contentType*/ ctx[37] + "";
 	let t;
 	let option_value_value;
 
@@ -6603,7 +6620,7 @@ function create_if_block_8(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*contentType*/ ctx[36];
+			option.__value = option_value_value = /*contentType*/ ctx[37];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -6612,9 +6629,9 @@ function create_if_block_8(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[36] + "")) set_data(t, t_value);
+			if (dirty[0] & /*contentTypes*/ 2 && t_value !== (t_value = /*contentType*/ ctx[37] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[36])) {
+			if (dirty[0] & /*contentTypes*/ 2 && option_value_value !== (option_value_value = /*contentType*/ ctx[37])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -6625,12 +6642,12 @@ function create_if_block_8(ctx) {
 	};
 }
 
-// (218:3) {#each contentTypes as contentType}
+// (249:4) {#each contentTypes as contentType}
 function create_each_block_3(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_2(ctx, dirty) {
-		if (/*node*/ ctx[0].contentType === /*contentType*/ ctx[36]) return create_if_block_8;
+		if (/*node*/ ctx[0].contentType === /*contentType*/ ctx[37]) return create_if_block_8;
 		return create_else_block_2;
 	}
 
@@ -6666,7 +6683,7 @@ function create_each_block_3(ctx) {
 	};
 }
 
-// (217:1) <Select bind:node prop="contentType">
+// (248:2) <Select bind:node prop="contentType">
 function create_default_slot_3(ctx) {
 	let each_1_anchor;
 	let each_value_3 = /*contentTypes*/ ctx[1];
@@ -6722,7 +6739,7 @@ function create_default_slot_3(ctx) {
 	};
 }
 
-// (297:1) {:else}
+// (334:2) {:else}
 function create_else_block_1(ctx) {
 	let div;
 
@@ -6745,7 +6762,7 @@ function create_else_block_1(ctx) {
 	};
 }
 
-// (227:1) {#if node.parameters.length > 0}
+// (261:2) {#if node.parameters.length > 0}
 function create_if_block(ctx) {
 	let editablelist;
 	let updating_elements;
@@ -6760,8 +6777,8 @@ function create_if_block(ctx) {
 		$$slots: {
 			default: [
 				create_default_slot,
-				({ element: param, index }) => ({ 25: param, 26: index }),
-				({ element: param, index }) => [(param ? 33554432 : 0) | (index ? 67108864 : 0)]
+				({ element: param, index }) => ({ 26: param, 27: index }),
+				({ element: param, index }) => [(param ? 67108864 : 0) | (index ? 134217728 : 0)]
 			]
 		},
 		$$scope: { ctx }
@@ -6785,7 +6802,7 @@ function create_if_block(ctx) {
 		p(ctx, dirty) {
 			const editablelist_changes = {};
 
-			if (dirty[0] & /*hideJsonKeys, param, node*/ 33554497 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*hideJsonKeys, param, node*/ 67108929 | dirty[1] & /*$$scope*/ 262144) {
 				editablelist_changes.$$scope = { dirty, ctx };
 			}
 
@@ -6812,7 +6829,7 @@ function create_if_block(ctx) {
 	};
 }
 
-// (245:4) {#if param.schema && param.schema.type === "object"}
+// (283:5) {#if param?.schema?.type === "object"}
 function create_if_block_1(ctx) {
 	let div;
 	let collapsible;
@@ -6841,7 +6858,7 @@ function create_if_block_1(ctx) {
 		p(ctx, dirty) {
 			const collapsible_changes = {};
 
-			if (dirty[0] & /*hideJsonKeys, param*/ 33554496 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*hideJsonKeys, param*/ 67108928 | dirty[1] & /*$$scope*/ 262144) {
 				collapsible_changes.$$scope = { dirty, ctx };
 			}
 
@@ -6863,7 +6880,7 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (248:10) <Row>
+// (286:11) <Row>
 function create_default_slot_2(ctx) {
 	let button0;
 	let t0;
@@ -6879,7 +6896,7 @@ function create_default_slot_2(ctx) {
 	button0.$on("click", /*click_handler*/ ctx[19]);
 
 	function click_handler_1() {
-		return /*click_handler_1*/ ctx[20](/*param*/ ctx[25]);
+		return /*click_handler_1*/ ctx[20](/*param*/ ctx[26]);
 	}
 
 	button1 = new Button({
@@ -6889,7 +6906,7 @@ function create_default_slot_2(ctx) {
 	button1.$on("click", click_handler_1);
 
 	function click_handler_2() {
-		return /*click_handler_2*/ ctx[21](/*param*/ ctx[25]);
+		return /*click_handler_2*/ ctx[21](/*param*/ ctx[26]);
 	}
 
 	button2 = new Button({
@@ -6940,7 +6957,7 @@ function create_default_slot_2(ctx) {
 	};
 }
 
-// (290:12) {:else}
+// (326:12) {:else}
 function create_else_block(ctx) {
 	let t;
 
@@ -6958,10 +6975,10 @@ function create_else_block(ctx) {
 	};
 }
 
-// (256:12) {#if param.schema && param.keys}
+// (292:12) {#if param.schema && param.keys}
 function create_if_block_2(ctx) {
 	let each_1_anchor;
-	let each_value = /*param*/ ctx[25].keys;
+	let each_value = /*param*/ ctx[26].keys;
 	let each_blocks = [];
 
 	for (let i = 0; i < each_value.length; i += 1) {
@@ -6984,8 +7001,8 @@ function create_if_block_2(ctx) {
 			insert(target, each_1_anchor, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432) {
-				each_value = /*param*/ ctx[25].keys;
+			if (dirty[0] & /*param*/ 67108864) {
+				each_value = /*param*/ ctx[26].keys;
 				let i;
 
 				for (i = 0; i < each_value.length; i += 1) {
@@ -7014,11 +7031,11 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (263:20) {#if param.schema.properties[propKey].description}
+// (299:20) {#if param.schema.properties[propKey].description}
 function create_if_block_7(ctx) {
 	let div;
 	let t0;
-	let t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].description + "";
+	let t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].description + "";
 	let t1;
 
 	return {
@@ -7033,7 +7050,7 @@ function create_if_block_7(ctx) {
 			append(div, t1);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432 && t1_value !== (t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].description + "")) set_data(t1, t1_value);
+			if (dirty[0] & /*param*/ 67108864 && t1_value !== (t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].description + "")) set_data(t1, t1_value);
 		},
 		d(detaching) {
 			if (detaching) detach(div);
@@ -7041,11 +7058,11 @@ function create_if_block_7(ctx) {
 	};
 }
 
-// (264:20) {#if param.schema.properties[propKey].example}
+// (300:20) {#if param.schema.properties[propKey].example}
 function create_if_block_6(ctx) {
 	let div;
 	let t0;
-	let t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].example + "";
+	let t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].example + "";
 	let t1;
 
 	return {
@@ -7060,7 +7077,7 @@ function create_if_block_6(ctx) {
 			append(div, t1);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432 && t1_value !== (t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].example + "")) set_data(t1, t1_value);
+			if (dirty[0] & /*param*/ 67108864 && t1_value !== (t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].example + "")) set_data(t1, t1_value);
 		},
 		d(detaching) {
 			if (detaching) detach(div);
@@ -7068,20 +7085,20 @@ function create_if_block_6(ctx) {
 	};
 }
 
-// (273:129) 
+// (309:129) 
 function create_if_block_4(ctx) {
 	let div;
 	let t0;
-	let t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.type + "";
+	let t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.type + "";
 	let t1;
 	let t2;
 	let ul;
-	let if_block = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.type === "object" && /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.properties && create_if_block_5(ctx);
+	let if_block = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.type === "object" && /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]]?.items?.properties && create_if_block_5(ctx);
 
 	return {
 		c() {
 			div = element("div");
-			t0 = text("containing: ");
+			t0 = text("Containing: ");
 			t1 = text(t1_value);
 			t2 = space();
 			ul = element("ul");
@@ -7096,9 +7113,9 @@ function create_if_block_4(ctx) {
 			if (if_block) if_block.m(ul, null);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432 && t1_value !== (t1_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.type + "")) set_data(t1, t1_value);
+			if (dirty[0] & /*param*/ 67108864 && t1_value !== (t1_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.type + "")) set_data(t1, t1_value);
 
-			if (/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.type === "object" && /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.properties) {
+			if (/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.type === "object" && /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]]?.items?.properties) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
@@ -7118,13 +7135,19 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (265:20) {#if param.schema.properties[propKey].type === "object"}
+// (301:20) {#if param.schema.properties[propKey].type === "object"}
 function create_if_block_3(ctx) {
+	let t0_value = "{" + "";
+	let t0;
+	let t1;
 	let ul;
 	let each_blocks = [];
 	let each_1_lookup = new Map();
-	let each_value_1 = Object.entries(/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].properties);
-	const get_key = ctx => /*pKey*/ ctx[30];
+	let t2;
+	let t3_value = "}" + "";
+	let t3;
+	let each_value_1 = Object.entries(/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].properties);
+	const get_key = ctx => /*pKey*/ ctx[31];
 
 	for (let i = 0; i < each_value_1.length; i += 1) {
 		let child_ctx = get_each_context_1(ctx, each_value_1, i);
@@ -7134,42 +7157,62 @@ function create_if_block_3(ctx) {
 
 	return {
 		c() {
+			t0 = text(t0_value);
+			t1 = space();
 			ul = element("ul");
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].c();
 			}
+
+			t2 = space();
+			t3 = text(t3_value);
 		},
 		m(target, anchor) {
+			insert(target, t0, anchor);
+			insert(target, t1, anchor);
 			insert(target, ul, anchor);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].m(ul, null);
 			}
+
+			insert(target, t2, anchor);
+			insert(target, t3, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432) {
-				each_value_1 = Object.entries(/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].properties);
+			if (dirty[0] & /*param*/ 67108864) {
+				each_value_1 = Object.entries(/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].properties);
 				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, ul, destroy_block, create_each_block_1, null, get_each_context_1);
 			}
 		},
 		d(detaching) {
+			if (detaching) detach(t0);
+			if (detaching) detach(t1);
 			if (detaching) detach(ul);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].d();
 			}
+
+			if (detaching) detach(t2);
+			if (detaching) detach(t3);
 		}
 	};
 }
 
-// (277:26) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey].items.properties}
+// (313:26) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
 function create_if_block_5(ctx) {
+	let t0_value = "{" + "";
+	let t0;
+	let t1;
 	let each_blocks = [];
 	let each_1_lookup = new Map();
-	let each_1_anchor;
-	let each_value_2 = Object.entries(/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.properties);
-	const get_key = ctx => /*pKey*/ ctx[30];
+	let t2;
+	let t3_value = "}" + "";
+	let t3;
+	let each_value_2 = Object.entries(/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.properties);
+	const get_key = ctx => /*pKey*/ ctx[31];
 
 	for (let i = 0; i < each_value_2.length; i += 1) {
 		let child_ctx = get_each_context_2(ctx, each_value_2, i);
@@ -7179,122 +7222,130 @@ function create_if_block_5(ctx) {
 
 	return {
 		c() {
+			t0 = text(t0_value);
+			t1 = space();
+
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].c();
 			}
 
-			each_1_anchor = empty();
+			t2 = space();
+			t3 = text(t3_value);
 		},
 		m(target, anchor) {
+			insert(target, t0, anchor);
+			insert(target, t1, anchor);
+
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].m(target, anchor);
 			}
 
-			insert(target, each_1_anchor, anchor);
+			insert(target, t2, anchor);
+			insert(target, t3, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*param*/ 33554432) {
-				each_value_2 = Object.entries(/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].items.properties);
-				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_2, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_2, each_1_anchor, get_each_context_2);
+			if (dirty[0] & /*param*/ 67108864) {
+				each_value_2 = Object.entries(/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].items.properties);
+				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_2, each_1_lookup, t2.parentNode, destroy_block, create_each_block_2, t2, get_each_context_2);
 			}
 		},
 		d(detaching) {
+			if (detaching) detach(t0);
+			if (detaching) detach(t1);
+
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].d(detaching);
 			}
 
-			if (detaching) detach(each_1_anchor);
+			if (detaching) detach(t2);
+			if (detaching) detach(t3);
 		}
 	};
 }
 
-// (278:28) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey) }
+// (315:26) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey) }
 function create_each_block_2(key_1, ctx) {
-	let li;
-	let t0_value = /*pKey*/ ctx[30] + "";
+	let p;
+	let t0_value = /*pKey*/ ctx[31] + "";
 	let t0;
 	let t1;
-	let t2_value = /*p*/ ctx[31].type + "";
+	let t2_value = /*p*/ ctx[32].type + "";
 	let t2;
-	let t3;
 
 	return {
 		key: key_1,
 		first: null,
 		c() {
-			li = element("li");
+			p = element("p");
 			t0 = text(t0_value);
-			t1 = text(" - ");
+			t1 = text(": ");
 			t2 = text(t2_value);
-			t3 = space();
-			this.first = li;
+			attr(p, "class", "jsonObjectKeyList svelte-1jskp0d");
+			this.first = p;
 		},
 		m(target, anchor) {
-			insert(target, li, anchor);
-			append(li, t0);
-			append(li, t1);
-			append(li, t2);
-			append(li, t3);
+			insert(target, p, anchor);
+			append(p, t0);
+			append(p, t1);
+			append(p, t2);
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty[0] & /*param*/ 33554432 && t0_value !== (t0_value = /*pKey*/ ctx[30] + "")) set_data(t0, t0_value);
-			if (dirty[0] & /*param*/ 33554432 && t2_value !== (t2_value = /*p*/ ctx[31].type + "")) set_data(t2, t2_value);
+			if (dirty[0] & /*param*/ 67108864 && t0_value !== (t0_value = /*pKey*/ ctx[31] + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*param*/ 67108864 && t2_value !== (t2_value = /*p*/ ctx[32].type + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
-			if (detaching) detach(li);
+			if (detaching) detach(p);
 		}
 	};
 }
 
-// (267:24) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey) }
+// (304:22) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey) }
 function create_each_block_1(key_1, ctx) {
-	let li;
-	let t0_value = /*pKey*/ ctx[30] + "";
+	let p;
+	let t0_value = /*pKey*/ ctx[31] + "";
 	let t0;
 	let t1;
-	let t2_value = /*p*/ ctx[31].type + "";
+	let t2_value = /*p*/ ctx[32].type + "";
 	let t2;
-	let t3;
 
 	return {
 		key: key_1,
 		first: null,
 		c() {
-			li = element("li");
+			p = element("p");
 			t0 = text(t0_value);
-			t1 = text(" - ");
+			t1 = text(": ");
 			t2 = text(t2_value);
-			t3 = space();
-			this.first = li;
+			attr(p, "class", "jsonObjectKeyList svelte-1jskp0d");
+			this.first = p;
 		},
 		m(target, anchor) {
-			insert(target, li, anchor);
-			append(li, t0);
-			append(li, t1);
-			append(li, t2);
-			append(li, t3);
+			insert(target, p, anchor);
+			append(p, t0);
+			append(p, t1);
+			append(p, t2);
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty[0] & /*param*/ 33554432 && t0_value !== (t0_value = /*pKey*/ ctx[30] + "")) set_data(t0, t0_value);
-			if (dirty[0] & /*param*/ 33554432 && t2_value !== (t2_value = /*p*/ ctx[31].type + "")) set_data(t2, t2_value);
+			if (dirty[0] & /*param*/ 67108864 && t0_value !== (t0_value = /*pKey*/ ctx[31] + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*param*/ 67108864 && t2_value !== (t2_value = /*p*/ ctx[32].type + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
-			if (detaching) detach(li);
+			if (detaching) detach(p);
 		}
 	};
 }
 
-// (257:14) {#each param.keys as propKey}
+// (293:14) {#each param.keys as propKey}
 function create_each_block(ctx) {
 	let ul;
 	let li;
 	let div;
-	let t0_value = /*propKey*/ ctx[27] + "";
+	let t0_value = /*propKey*/ ctx[28] + "";
 	let t0;
 	let t1;
-	let t2_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].type + "";
+	let t2_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].type + "";
 	let t2;
 	let t3;
 	let t4;
@@ -7302,15 +7353,15 @@ function create_each_block(ctx) {
 	let t6;
 
 	function func(...args) {
-		return /*func*/ ctx[22](/*propKey*/ ctx[27], ...args);
+		return /*func*/ ctx[22](/*propKey*/ ctx[28], ...args);
 	}
 
-	let if_block0 = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].description && create_if_block_7(ctx);
-	let if_block1 = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].example && create_if_block_6(ctx);
+	let if_block0 = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].description && create_if_block_7(ctx);
+	let if_block1 = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].example && create_if_block_6(ctx);
 
 	function select_block_type_5(ctx, dirty) {
-		if (/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].type === "object") return create_if_block_3;
-		if (/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].type === "array" && /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]]?.items?.type) return create_if_block_4;
+		if (/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].type === "object") return create_if_block_3;
+		if (/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].type === "array" && /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]]?.items?.type) return create_if_block_4;
 	}
 
 	let current_block_type = select_block_type_5(ctx);
@@ -7331,7 +7382,7 @@ function create_each_block(ctx) {
 			t5 = space();
 			if (if_block2) if_block2.c();
 			t6 = space();
-			toggle_class(div, "required", /*param*/ ctx[25].schema.required && /*param*/ ctx[25].schema.required.find(func));
+			toggle_class(div, "required", /*param*/ ctx[26].schema.required && /*param*/ ctx[26].schema.required.find(func));
 		},
 		m(target, anchor) {
 			insert(target, ul, anchor);
@@ -7350,14 +7401,14 @@ function create_each_block(ctx) {
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty[0] & /*param*/ 33554432 && t0_value !== (t0_value = /*propKey*/ ctx[27] + "")) set_data(t0, t0_value);
-			if (dirty[0] & /*param*/ 33554432 && t2_value !== (t2_value = /*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].type + "")) set_data(t2, t2_value);
+			if (dirty[0] & /*param*/ 67108864 && t0_value !== (t0_value = /*propKey*/ ctx[28] + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*param*/ 67108864 && t2_value !== (t2_value = /*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].type + "")) set_data(t2, t2_value);
 
-			if (dirty[0] & /*param*/ 33554432) {
-				toggle_class(div, "required", /*param*/ ctx[25].schema.required && /*param*/ ctx[25].schema.required.find(func));
+			if (dirty[0] & /*param*/ 67108864) {
+				toggle_class(div, "required", /*param*/ ctx[26].schema.required && /*param*/ ctx[26].schema.required.find(func));
 			}
 
-			if (/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].description) {
+			if (/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].description) {
 				if (if_block0) {
 					if_block0.p(ctx, dirty);
 				} else {
@@ -7370,7 +7421,7 @@ function create_each_block(ctx) {
 				if_block0 = null;
 			}
 
-			if (/*param*/ ctx[25].schema.properties[/*propKey*/ ctx[27]].example) {
+			if (/*param*/ ctx[26].schema.properties[/*propKey*/ ctx[28]].example) {
 				if (if_block1) {
 					if_block1.p(ctx, dirty);
 				} else {
@@ -7407,7 +7458,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (247:8) <Collapsible icon="sticky-note" label={"json parameters"}>
+// (285:9) <Collapsible icon="sticky-note" label={"json parameters"}>
 function create_default_slot_1(ctx) {
 	let row;
 	let t;
@@ -7422,7 +7473,7 @@ function create_default_slot_1(ctx) {
 		});
 
 	function select_block_type_4(ctx, dirty) {
-		if (/*param*/ ctx[25].schema && /*param*/ ctx[25].keys) return create_if_block_2;
+		if (/*param*/ ctx[26].schema && /*param*/ ctx[26].keys) return create_if_block_2;
 		return create_else_block;
 	}
 
@@ -7435,7 +7486,7 @@ function create_default_slot_1(ctx) {
 			t = space();
 			div = element("div");
 			if_block.c();
-			attr(div, "class", "svelte-1dp2mq6");
+			attr(div, "class", "svelte-1jskp0d");
 			toggle_class(div, "jsonKeys", /*hideJsonKeys*/ ctx[6]);
 		},
 		m(target, anchor) {
@@ -7448,7 +7499,7 @@ function create_default_slot_1(ctx) {
 		p(ctx, dirty) {
 			const row_changes = {};
 
-			if (dirty[0] & /*hideJsonKeys*/ 64 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*hideJsonKeys*/ 64 | dirty[1] & /*$$scope*/ 262144) {
 				row_changes.$$scope = { dirty, ctx };
 			}
 
@@ -7488,85 +7539,71 @@ function create_default_slot_1(ctx) {
 	};
 }
 
-// (228:2) <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
+// (262:4) <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
 function create_default_slot(ctx) {
-	let div2;
+	let div1;
 	let div0;
 	let input;
 	let t0;
-	let div1;
-	let t1_value = /*param*/ ctx[25].description + "";
-	let t1;
-	let t2;
 	let typedinput;
-	let t3;
+	let t1;
 	let if_block_anchor;
 	let current;
 
 	function change_handler(...args) {
-		return /*change_handler*/ ctx[17](/*index*/ ctx[26], ...args);
+		return /*change_handler*/ ctx[17](/*index*/ ctx[27], ...args);
 	}
 
 	input = new Input({
 			props: {
 				type: "checkbox",
-				label: /*param*/ ctx[25].name,
-				value: /*param*/ ctx[25].isActive,
-				disabled: /*param*/ ctx[25].required
+				label: /*param*/ ctx[26].name + ": " + /*param*/ ctx[26].description,
+				value: /*param*/ ctx[26].isActive,
+				disabled: /*param*/ ctx[26].required
 			}
 		});
 
 	input.$on("change", change_handler);
 
 	function change_handler_1(...args) {
-		return /*change_handler_1*/ ctx[18](/*index*/ ctx[26], ...args);
+		return /*change_handler_1*/ ctx[18](/*index*/ ctx[27], /*param*/ ctx[26], ...args);
 	}
 
 	typedinput = new TypedInput({
 			props: {
-				label: "Value",
-				types: /*param*/ ctx[25].allowedTypes,
-				type: /*param*/ ctx[25].type,
-				value: /*param*/ ctx[25].value,
-				id: /*param*/ ctx[25].id,
-				disabled: !/*param*/ ctx[25].isActive
+				label: " ",
+				types: /*param*/ ctx[26].allowedTypes,
+				type: /*param*/ ctx[26].type,
+				value: /*param*/ ctx[26].value,
+				id: /*param*/ ctx[26].id,
+				disabled: !/*param*/ ctx[26].isActive
 			}
 		});
 
 	typedinput.$on("change", change_handler_1);
-	let if_block = /*param*/ ctx[25].schema && /*param*/ ctx[25].schema.type === "object" && create_if_block_1(ctx);
+	let if_block = /*param*/ ctx[26]?.schema?.type === "object" && create_if_block_1(ctx);
 
 	return {
 		c() {
-			div2 = element("div");
+			div1 = element("div");
 			div0 = element("div");
 			create_component(input.$$.fragment);
 			t0 = space();
-			div1 = element("div");
-			t1 = text(t1_value);
-			t2 = space();
 			create_component(typedinput.$$.fragment);
-			t3 = space();
+			t1 = space();
 			if (if_block) if_block.c();
 			if_block_anchor = empty();
 			set_style(div0, "min-width", "99px");
-			set_style(div1, "margin-left", "15px");
-			set_style(div1, "margin-top", "21px");
-			set_style(div2, "display", "flex");
-			set_style(div2, "margin-top", "-21px");
-			set_style(div2, "margin-bottom", "-10px");
-			toggle_class(div2, "required", /*param*/ ctx[25].required);
+			set_style(div1, "display", "flex");
+			toggle_class(div1, "required", /*param*/ ctx[26].required);
 		},
 		m(target, anchor) {
-			insert(target, div2, anchor);
-			append(div2, div0);
+			insert(target, div1, anchor);
+			append(div1, div0);
 			mount_component(input, div0, null);
-			append(div2, t0);
-			append(div2, div1);
-			append(div1, t1);
-			insert(target, t2, anchor);
+			insert(target, t0, anchor);
 			mount_component(typedinput, target, anchor);
-			insert(target, t3, anchor);
+			insert(target, t1, anchor);
 			if (if_block) if_block.m(target, anchor);
 			insert(target, if_block_anchor, anchor);
 			current = true;
@@ -7574,29 +7611,28 @@ function create_default_slot(ctx) {
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
 			const input_changes = {};
-			if (dirty[0] & /*param*/ 33554432) input_changes.label = /*param*/ ctx[25].name;
-			if (dirty[0] & /*param*/ 33554432) input_changes.value = /*param*/ ctx[25].isActive;
-			if (dirty[0] & /*param*/ 33554432) input_changes.disabled = /*param*/ ctx[25].required;
+			if (dirty[0] & /*param*/ 67108864) input_changes.label = /*param*/ ctx[26].name + ": " + /*param*/ ctx[26].description;
+			if (dirty[0] & /*param*/ 67108864) input_changes.value = /*param*/ ctx[26].isActive;
+			if (dirty[0] & /*param*/ 67108864) input_changes.disabled = /*param*/ ctx[26].required;
 			input.$set(input_changes);
-			if ((!current || dirty[0] & /*param*/ 33554432) && t1_value !== (t1_value = /*param*/ ctx[25].description + "")) set_data(t1, t1_value);
 
-			if (dirty[0] & /*param*/ 33554432) {
-				toggle_class(div2, "required", /*param*/ ctx[25].required);
+			if (dirty[0] & /*param*/ 67108864) {
+				toggle_class(div1, "required", /*param*/ ctx[26].required);
 			}
 
 			const typedinput_changes = {};
-			if (dirty[0] & /*param*/ 33554432) typedinput_changes.types = /*param*/ ctx[25].allowedTypes;
-			if (dirty[0] & /*param*/ 33554432) typedinput_changes.type = /*param*/ ctx[25].type;
-			if (dirty[0] & /*param*/ 33554432) typedinput_changes.value = /*param*/ ctx[25].value;
-			if (dirty[0] & /*param*/ 33554432) typedinput_changes.id = /*param*/ ctx[25].id;
-			if (dirty[0] & /*param*/ 33554432) typedinput_changes.disabled = !/*param*/ ctx[25].isActive;
+			if (dirty[0] & /*param*/ 67108864) typedinput_changes.types = /*param*/ ctx[26].allowedTypes;
+			if (dirty[0] & /*param*/ 67108864) typedinput_changes.type = /*param*/ ctx[26].type;
+			if (dirty[0] & /*param*/ 67108864) typedinput_changes.value = /*param*/ ctx[26].value;
+			if (dirty[0] & /*param*/ 67108864) typedinput_changes.id = /*param*/ ctx[26].id;
+			if (dirty[0] & /*param*/ 67108864) typedinput_changes.disabled = !/*param*/ ctx[26].isActive;
 			typedinput.$set(typedinput_changes);
 
-			if (/*param*/ ctx[25].schema && /*param*/ ctx[25].schema.type === "object") {
+			if (/*param*/ ctx[26]?.schema?.type === "object") {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 
-					if (dirty[0] & /*param*/ 33554432) {
+					if (dirty[0] & /*param*/ 67108864) {
 						transition_in(if_block, 1);
 					}
 				} else {
@@ -7629,11 +7665,11 @@ function create_default_slot(ctx) {
 			current = false;
 		},
 		d(detaching) {
-			if (detaching) detach(div2);
+			if (detaching) detach(div1);
 			destroy_component(input);
-			if (detaching) detach(t2);
+			if (detaching) detach(t0);
 			destroy_component(typedinput, detaching);
-			if (detaching) detach(t3);
+			if (detaching) detach(t1);
 			if (if_block) if_block.d(detaching);
 			if (detaching) detach(if_block_anchor);
 		}
@@ -7641,39 +7677,42 @@ function create_default_slot(ctx) {
 }
 
 function create_fragment(ctx) {
+	let div6;
 	let input0;
 	let updating_node;
 	let t0;
+	let div2;
+	let div0;
+	let t2;
+	let div1;
 	let input1;
 	let updating_node_1;
-	let t1;
-	let div0;
+	let t3;
 	let button;
-	let t2;
+	let t4;
 	let select0;
 	let updating_node_2;
-	let t3;
-	let div1;
-	let t4;
 	let t5;
-	let hr;
+	let div3;
 	let t6;
+	let t7;
+	let hr;
+	let t8;
 	let select1;
 	let updating_node_3;
-	let t7;
-	let div2;
+	let t9;
+	let div4;
 	let select2;
 	let updating_node_4;
-	let t8;
-	let t9;
+	let t10;
+	let t11;
 	let select3;
 	let updating_node_5;
-	let t10;
-	let span;
 	let t12;
+	let div5;
+	let t16;
 	let current_block_type_index;
 	let if_block1;
-	let if_block1_anchor;
 	let current;
 
 	function input0_node_binding(value) {
@@ -7693,7 +7732,11 @@ function create_fragment(ctx) {
 		/*input1_node_binding*/ ctx[12](value);
 	}
 
-	let input1_props = { prop: "openApiUrl" };
+	let input1_props = {
+		prop: "openApiUrl",
+		label: " ",
+		inline: true
+	};
 
 	if (/*node*/ ctx[0] !== void 0) {
 		input1_props.node = /*node*/ ctx[0];
@@ -7701,7 +7744,15 @@ function create_fragment(ctx) {
 
 	input1 = new Input({ props: input1_props });
 	binding_callbacks.push(() => bind(input1, "node", input1_node_binding));
-	button = new Button({ props: { icon: "edit", label: "read" } });
+
+	button = new Button({
+			props: {
+				icon: "edit",
+				label: "read",
+				inline: true
+			}
+		});
+
 	button.$on("click", /*createApi*/ ctx[7]);
 
 	function select0_node_binding(value) {
@@ -7789,66 +7840,81 @@ function create_fragment(ctx) {
 
 	return {
 		c() {
+			div6 = element("div");
 			create_component(input0.$$.fragment);
 			t0 = space();
-			create_component(input1.$$.fragment);
-			t1 = space();
-			div0 = element("div");
-			create_component(button.$$.fragment);
-			t2 = space();
-			create_component(select0.$$.fragment);
-			t3 = space();
-			div1 = element("div");
-			t4 = text(/*error*/ ctx[2]);
-			t5 = space();
-			hr = element("hr");
-			t6 = space();
-			create_component(select1.$$.fragment);
-			t7 = space();
 			div2 = element("div");
-			create_component(select2.$$.fragment);
+			div0 = element("div");
+			div0.innerHTML = `<label style="width: 104px;" for="node-input-openApiUrl">URL</label>`;
+			t2 = space();
+			div1 = element("div");
+			create_component(input1.$$.fragment);
+			t3 = space();
+			create_component(button.$$.fragment);
+			t4 = space();
+			create_component(select0.$$.fragment);
+			t5 = space();
+			div3 = element("div");
+			t6 = text(/*error*/ ctx[2]);
+			t7 = space();
+			hr = element("hr");
 			t8 = space();
-			if (if_block0) if_block0.c();
+			create_component(select1.$$.fragment);
 			t9 = space();
+			div4 = element("div");
+			create_component(select2.$$.fragment);
+			t10 = space();
+			if (if_block0) if_block0.c();
+			t11 = space();
 			create_component(select3.$$.fragment);
-			t10 = text("\n Parameters ");
-			span = element("span");
-			span.textContent = "(bold & red = required parameters)";
 			t12 = space();
+			div5 = element("div");
+
+			div5.innerHTML = `<span style="width: 104px;">Parameters</span> 
+    <span style="font-size: 10px;">(bold = required parameters)</span>`;
+
+			t16 = space();
 			if_block1.c();
-			if_block1_anchor = empty();
-			set_style(div0, "margin", "0 0 12px 104px");
-			attr(div1, "class", "nodeError");
-			set_style(span, "font-size", "10px");
+			set_style(div1, "width", "100%");
+			set_style(div2, "display", "flex");
+			set_style(div2, "align-items", "baseline");
+			set_style(div2, "margin-top", "-7px");
+			set_style(div2, "margin-bottom", "10px");
+			attr(div3, "class", "nodeError");
+			set_style(div5, "display", "flex");
+			attr(div6, "id", "openApi-red");
 		},
 		m(target, anchor) {
-			mount_component(input0, target, anchor);
-			insert(target, t0, anchor);
-			mount_component(input1, target, anchor);
-			insert(target, t1, anchor);
-			insert(target, div0, anchor);
-			mount_component(button, div0, null);
-			insert(target, t2, anchor);
-			mount_component(select0, target, anchor);
-			insert(target, t3, anchor);
-			insert(target, div1, anchor);
-			append(div1, t4);
-			insert(target, t5, anchor);
-			insert(target, hr, anchor);
-			insert(target, t6, anchor);
-			mount_component(select1, target, anchor);
-			insert(target, t7, anchor);
-			insert(target, div2, anchor);
-			mount_component(select2, div2, null);
-			append(div2, t8);
-			if (if_block0) if_block0.m(div2, null);
-			insert(target, t9, anchor);
-			mount_component(select3, target, anchor);
-			insert(target, t10, anchor);
-			insert(target, span, anchor);
-			insert(target, t12, anchor);
-			if_blocks[current_block_type_index].m(target, anchor);
-			insert(target, if_block1_anchor, anchor);
+			insert(target, div6, anchor);
+			mount_component(input0, div6, null);
+			append(div6, t0);
+			append(div6, div2);
+			append(div2, div0);
+			append(div2, t2);
+			append(div2, div1);
+			mount_component(input1, div1, null);
+			append(div1, t3);
+			mount_component(button, div1, null);
+			append(div6, t4);
+			mount_component(select0, div6, null);
+			append(div6, t5);
+			append(div6, div3);
+			append(div3, t6);
+			append(div6, t7);
+			append(div6, hr);
+			append(div6, t8);
+			mount_component(select1, div6, null);
+			append(div6, t9);
+			append(div6, div4);
+			mount_component(select2, div4, null);
+			append(div4, t10);
+			if (if_block0) if_block0.m(div4, null);
+			append(div6, t11);
+			mount_component(select3, div6, null);
+			append(div6, t12);
+			append(div6, div5);
+			append(div6, t16);
+			if_blocks[current_block_type_index].m(div6, null);
 			current = true;
 		},
 		p(ctx, dirty) {
@@ -7872,7 +7938,7 @@ function create_fragment(ctx) {
 			input1.$set(input1_changes);
 			const select0_changes = {};
 
-			if (dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[1] & /*$$scope*/ 262144) {
 				select0_changes.$$scope = { dirty, ctx };
 			}
 
@@ -7883,10 +7949,10 @@ function create_fragment(ctx) {
 			}
 
 			select0.$set(select0_changes);
-			if (!current || dirty[0] & /*error*/ 4) set_data(t4, /*error*/ ctx[2]);
+			if (!current || dirty[0] & /*error*/ 4) set_data(t6, /*error*/ ctx[2]);
 			const select1_changes = {};
 
-			if (dirty[0] & /*apis, node*/ 9 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*apis, node*/ 9 | dirty[1] & /*$$scope*/ 262144) {
 				select1_changes.$$scope = { dirty, ctx };
 			}
 
@@ -7899,7 +7965,7 @@ function create_fragment(ctx) {
 			select1.$set(select1_changes);
 			const select2_changes = {};
 
-			if (dirty[0] & /*operations, node*/ 17 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*operations, node*/ 17 | dirty[1] & /*$$scope*/ 262144) {
 				select2_changes.$$scope = { dirty, ctx };
 			}
 
@@ -7919,7 +7985,7 @@ function create_fragment(ctx) {
 				} else {
 					if_block0 = create_if_block_9(ctx);
 					if_block0.c();
-					if_block0.m(div2, null);
+					if_block0.m(div4, null);
 				}
 			} else if (if_block0) {
 				if_block0.d(1);
@@ -7928,7 +7994,7 @@ function create_fragment(ctx) {
 
 			const select3_changes = {};
 
-			if (dirty[0] & /*contentTypes, node*/ 3 | dirty[1] & /*$$scope*/ 131072) {
+			if (dirty[0] & /*contentTypes, node*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				select3_changes.$$scope = { dirty, ctx };
 			}
 
@@ -7962,7 +8028,7 @@ function create_fragment(ctx) {
 				}
 
 				transition_in(if_block1, 1);
-				if_block1.m(if_block1_anchor.parentNode, if_block1_anchor);
+				if_block1.m(div6, null);
 			}
 		},
 		i(local) {
@@ -7989,31 +8055,16 @@ function create_fragment(ctx) {
 			current = false;
 		},
 		d(detaching) {
-			destroy_component(input0, detaching);
-			if (detaching) detach(t0);
-			destroy_component(input1, detaching);
-			if (detaching) detach(t1);
-			if (detaching) detach(div0);
+			if (detaching) detach(div6);
+			destroy_component(input0);
+			destroy_component(input1);
 			destroy_component(button);
-			if (detaching) detach(t2);
-			destroy_component(select0, detaching);
-			if (detaching) detach(t3);
-			if (detaching) detach(div1);
-			if (detaching) detach(t5);
-			if (detaching) detach(hr);
-			if (detaching) detach(t6);
-			destroy_component(select1, detaching);
-			if (detaching) detach(t7);
-			if (detaching) detach(div2);
+			destroy_component(select0);
+			destroy_component(select1);
 			destroy_component(select2);
 			if (if_block0) if_block0.d();
-			if (detaching) detach(t9);
-			destroy_component(select3, detaching);
-			if (detaching) detach(t10);
-			if (detaching) detach(span);
-			if (detaching) detach(t12);
-			if_blocks[current_block_type_index].d(detaching);
-			if (detaching) detach(if_block1_anchor);
+			destroy_component(select3);
+			if_blocks[current_block_type_index].d();
 		}
 	};
 }
@@ -8042,6 +8093,15 @@ RED.nodes.registerType("openApi-red", {
 		render(this);
 	},
 	oneditsave() {
+		let clone = this.__clone;
+
+		// Workaround if JSON-Editor (ACE) was used -> more info in bottom code (on:change event for typedInput Parameters)
+		if (clone.saveTypedInputAgain) {
+			clone.saveTypedInputAgain.forEach(({ index, id }) => {
+				clone.parameters[index].value = window.$("#node-input-" + id).typedInput("value");
+			});
+		}
+
 		update(this);
 	},
 	oneditcancel() {
@@ -8058,8 +8118,16 @@ function instance($$self, $$props, $$invalidate) {
 	let operationDescription = "-";
 	let prevOperation;
 	if (node.operation) prevOperation = node.operation.toString();
+	node.saveTypedInputAgain = [];
 	let contentTypes = [];
 	let hideJsonKeys = true;
+	let oldParameters = {};
+
+	// save old parameter objects (openApi-red version <0.2)
+	if (!Array.isArray(node.parameters) && node.api && node.operation) {
+		Object.assign(oldParameters, node.parameters);
+		node.parameters = [];
+	}
 
 	const createApi = async () => {
 		try {
@@ -8096,39 +8164,47 @@ function instance($$self, $$props, $$invalidate) {
 
 	function input0_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	function input1_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	function select0_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	function select1_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	function select2_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	function select3_node_binding(value) {
 		node = value;
-		((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+		(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 	}
 
 	const change_handler = (index, e) => $$invalidate(0, node.parameters[index].isActive = e.detail.value, node);
 
-	const change_handler_1 = (index, e) => {
-		$$invalidate(0, node.parameters[index].value = e.detail.value, node);
-		$$invalidate(0, node.parameters[index].type = e.detail.type, node);
+	const change_handler_1 = (index, param, e) => {
+		// if JSON-Editor (ACE) is used, it will return '[object Object]' as value, but set the correct JSON in the input field.
+		// This seems to be a bug which occurs to non default fields and SIR. As non default fields will not be saved automaticlly (and this is a correct behavior)
+		// we must use a workaround and don't save the value with the on:change event but save it when the node will be closed.
+		if (typeof e.detail.value !== "object" && e.detail.value.toString() !== "[object Object]") {
+			$$invalidate(0, node.parameters[index].value = e.detail.value, node);
+			$$invalidate(0, node.parameters[index].type = e.detail.type, node);
+		} else {
+			// within the change event window.$('#node-input-' + id).typedInput('value') would also return the wrong value
+			node.saveTypedInputAgain.push({ index, "id": param.id });
+		}
 	};
 
 	const click_handler = () => $$invalidate(6, hideJsonKeys = !hideJsonKeys);
@@ -8139,7 +8215,7 @@ function instance($$self, $$props, $$invalidate) {
 	function editablelist_elements_binding(value) {
 		if ($$self.$$.not_equal(node.parameters, value)) {
 			node.parameters = value;
-			((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+			(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 		}
 	}
 
@@ -8152,7 +8228,7 @@ function instance($$self, $$props, $$invalidate) {
 			// set valid operations if api is set
 			if (node.api && apiList?.[node.api]) {
 				$$invalidate(4, operations = apiList[node.api]);
-				((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
+				(((($$invalidate(0, node), $$invalidate(9, apiList)), $$invalidate(24, oldParameters)), $$invalidate(1, contentTypes)), $$invalidate(10, prevOperation));
 			} else {
 				$$invalidate(4, operations = {});
 			}
@@ -8160,7 +8236,7 @@ function instance($$self, $$props, $$invalidate) {
 
 		if ($$self.$$.dirty[0] & /*node, apiList, contentTypes, prevOperation*/ 1539) {
 			// create content type selection and parameter list
-			if (node.operation) {
+			if (node.operation || oldParameters) {
 				$$invalidate(5, operationDescription = "-");
 
 				if (apiList?.[node.api]?.[node.operation]?.description) {
@@ -8188,6 +8264,7 @@ function instance($$self, $$props, $$invalidate) {
 					node.parameters.splice(0, node.parameters.length);
 					$$invalidate(10, prevOperation = node.operation);
 					let operationData = apiList[node.api][node.operation];
+					if (!operationData) operationData = {};
 					$$invalidate(0, node.operationData = apiList[node.api][node.operation], node);
 
 					// openApi 3 new body style with selection // Warning: Experimental
@@ -8202,17 +8279,18 @@ function instance($$self, $$props, $$invalidate) {
 								name: "Request body",
 								in: "",
 								schema: content[node.contentType].schema || null,
-								value: "{}",
+								value: oldParameters?.[" Request body"]?.value || "{}",
 								required: !!requestBody?.required || false,
-								isActive: !!requestBody?.required || false,
+								isActive: !!requestBody?.required || oldParameters?.[" Request body"]?.isActive || false,
 								description: requestBody?.description || "-",
-								type: "json",
+								type: oldParameters?.[" Request body"]?.inputType || "json",
 								allowedTypes: getAllowedTypes("json"),
 								keys
 							});
 						}
 					} else {
-						let parameters = operationData.parameters.sort(orderRequired);
+						let parameters = operationData?.parameters?.sort(orderRequired);
+						if (!parameters) parameters = [];
 
 						parameters.forEach(param => {
 							let keys = sortKeys(param.schema);
@@ -8222,19 +8300,16 @@ function instance($$self, $$props, $$invalidate) {
 								name: param.name,
 								in: param.in,
 								required: param.required,
-								value: "",
-								isActive: !!param.required || false,
-								type: getCorrectType(param), // selected type
+								value: oldParameters?.[param.name + " " + param.in]?.value || "",
+								isActive: !!param.required || oldParameters?.[param.name + " " + param.in]?.isActive || false,
+								type: oldParameters?.[param.name + " " + param.in]?.inputType || getCorrectType(param), // selected type
 								allowedTypes: getAllowedTypes(param),
-								description: param.description,
+								description: param.description || "-",
 								schema: param.schema || null,
 								keys
 							});
 						});
 					}
-
-					console.log("OP: ", operationData);
-					console.log("nP: ", node.parameters);
 				}
 			}
 		}
@@ -8277,7 +8352,7 @@ function instance($$self, $$props, $$invalidate) {
 class OpenApi_red extends SvelteComponent {
 	constructor(options) {
 		super();
-		if (!document.getElementById("svelte-1dp2mq6-style")) add_css();
+		if (!document.getElementById("svelte-1jskp0d-style")) add_css();
 		init(this, options, instance, create_fragment, safe_not_equal, { node: 0 }, [-1, -1]);
 	}
 }

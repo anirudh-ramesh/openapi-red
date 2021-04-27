@@ -75,7 +75,7 @@ module.exports = function (RED) {
           requestInterceptor: (req) => {
             if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
             if (msg.headers) {
-              req.headers = Object.assign(req.headers || {}, msg.headers);
+              req.headers = Object.assign(req.headers || {}, msg.headers)
             }
           }
         })

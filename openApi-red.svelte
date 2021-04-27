@@ -23,20 +23,25 @@
      },
      
    oneditprepare: function() {
-     render(this)
+    render(this)
    },
    oneditsave: function() {
-     let node = this
-     
-     update(this)
+    let clone = this.__clone
+    // Workaround if JSON-Editor (ACE) was used -> more info in bottom code (on:change event for typedInput Parameters)
+    if (clone.saveTypedInputAgain) {
+      clone.saveTypedInputAgain.forEach( ({index, id}) => {
+        clone.parameters[index].value = window.$("#node-input-" + id).typedInput('value')
+      })
+    }
+    update(this)
    },
    oneditcancel: function() {
      revert(this)
    }
  })
- </script>
+</script>
  
- <script>
+<script>
  export let node
  import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from "svelte-integration-red/components"
  import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys, orderRequired} from "./utils/htmlFunctions"
@@ -48,9 +53,18 @@
  let operationDescription = "-"
  let prevOperation
  if (node.operation) prevOperation = node.operation.toString()
+ node.saveTypedInputAgain = []
  let contentTypes = []
  let hideJsonKeys = true
- 
+ let oldParameters = {}
+
+ // save old parameter objects (openApi-red version <0.2)
+  if (!Array.isArray(node.parameters) && node.api && node.operation) {
+    Object.assign(oldParameters, node.parameters)
+    node.parameters = []
+  }
+
+
  const createApi = async () => {
   try {
     error = ""
@@ -87,7 +101,7 @@ const setError = (message) => {
  }
  
  // create content type selection and parameter list
- $: if (node.operation) {
+ $: if (node.operation || oldParameters) {
   operationDescription = "-"
   if (apiList?.[node.api]?.[node.operation]?.description) {
     operationDescription = apiList[node.api][node.operation].description
@@ -107,6 +121,7 @@ const setError = (message) => {
     node.parameters.splice(0, node.parameters.length)      
     prevOperation = node.operation
     let operationData = apiList[node.api][node.operation]
+    if (!operationData) operationData = {}
     node.operationData = apiList[node.api][node.operation]
     // openApi 3 new body style with selection // Warning: Experimental
     if (!operationData.parameters && operationData?.requestBody?.content) {
@@ -119,17 +134,18 @@ const setError = (message) => {
           name: "Request body",
           in: "",
           schema:  content[node.contentType].schema || null,
-          value: "{}",
+          value: oldParameters?.[" Request body"]?.value || "{}",
           required: !!requestBody?.required || false,
-          isActive: !!requestBody?.required || false,
+          isActive: !!requestBody?.required || oldParameters?.[" Request body"]?.isActive || false,
           description: requestBody?.description || "-",
-          type: "json",
+          type: oldParameters?.[" Request body"]?.inputType || "json",
           allowedTypes: getAllowedTypes("json"),
           keys
         })
       }
     } else {
-      let parameters = operationData.parameters.sort(orderRequired)
+      let parameters = operationData?.parameters?.sort(orderRequired)
+      if (!parameters) parameters = []
       parameters.forEach(param => {
       let keys = sortKeys(param.schema)       
         node.parameters.push(
@@ -138,19 +154,17 @@ const setError = (message) => {
             name: param.name,
             in: param.in,
             required: param.required,
-            value: "",
-            isActive: !!param.required || false,
-            type: getCorrectType(param), // selected type
+            value: oldParameters?.[param.name + " " + param.in]?.value || "",
+            isActive: !!param.required || oldParameters?.[param.name + " " + param.in]?.isActive|| false,
+            type: oldParameters?.[param.name + " " + param.in]?.inputType || getCorrectType(param), // selected type
             allowedTypes: getAllowedTypes(param),
-            description: param.description,
+            description: param.description ||"-",
             schema: param.schema || null,
             keys
           }
         )
       })
     }
-    console.log("OP: ", operationData)
-  console.log("nP: ", node.parameters)
   }
  }
 
@@ -162,97 +176,119 @@ const setError = (message) => {
  </script>
  
  <style>
-  :global(.required, .required label) {
-      color: red; font-weight: bold!important;
+  :global(#openApi-red .required, #openApi-red .required label) {
+    font-weight: bold!important;
 	}
-  :global(.urlInput label) {
+  :global(#openApi-red .urlInput label) {
     width: 104px;
+  }
+  :global(#openApi-red #node-input-openApiUrl) {
+    width: 70%
+  }
+  :global(#openApi-red .red-ui-editableList-item-content div) {
+    margin-top: 2px !important;
+    margin-bottom: 0px !important;
+  }
+
+  .jsonObjectKeyList {
+    margin-bottom: 0px;
   }
   .jsonKeys {
     display: none;
   }
-   
  </style>
- <Input bind:node prop="name" placeholder="openApi-red" />
-  <Input bind:node prop="openApiUrl"/>
-  <div style="margin:0 0 12px 104px;">
-    <Button icon="edit" label="read" on:click={createApi}></Button>
+
+<div id="openApi-red">
+  <Input bind:node prop="name" placeholder="openApi-red" />
+  <div style="display: flex; align-items: baseline; margin-top: -7px; margin-bottom: 10px;">
+     <div>
+       <label style="width: 104px;" for="node-input-openApiUrl">URL</label>
+     </div>
+     <div style="width:100%;">
+       <Input bind:node prop="openApiUrl" label=" " inline/>
+       <Button icon="edit" label="read" on:click={createApi} inline></Button>
+     </div>
   </div>
- <Select bind:node prop="errorHandling" >
-   {#each errorHandlingOptions as eOption}
-     <option value={eOption}>{eOption}</option>
-   {/each}
- </Select>
- <div class="nodeError">{error}</div>
- <hr>
- <Select bind:node prop="api" >
-     <option value=""></option>
-   {#each apis as api}
-         {#if node.api === api} 
-             <option value={api} selected>{api}</option>
-         {:else}
-             <option value={api}>{api}</option>
-         {/if}
-   {/each}
- </Select>
- <div>
-  <Select bind:node prop="operation" inline>
-      <option value=""></option>
-      {#each Object.entries(operations) as [key]}
-          {#if node.operation === operations[key].operationId}
-              <option value={operations[key].operationId} selected>{operations[key].summary}</option>
-      {:else}
-          <option value={operations[key].operationId}>{operations[key].summary}</option>
-      {/if}
+  <Select bind:node prop="errorHandling" >
+    {#each errorHandlingOptions as eOption}
+      <option value={eOption}>{eOption}</option>
     {/each}
-  </Select> 
-  {#if {operationDescription} }
-    <div style="display: flex; margin-bottom:12px;">
-      <div style="min-width: 104px;">Description:</div>
-      <div style="widht: 70%">{operationDescription}</div>
-    </div>
-  {/if}
- </div>
- 
- <Select bind:node prop="contentType">
-   {#each contentTypes as contentType}
-         {#if node.contentType === contentType}
-             <option value={contentType} selected>{contentType}</option>
+  </Select>
+  <div class="nodeError">{error}</div>
+  <hr>
+  <Select bind:node prop="api" >
+      <option value=""></option>
+     { #each apis as api}
+       {#if node.api === api} 
+         <option value={api} selected>{api}</option>
+       {:else}
+         <option value={api}>{api}</option>
+       {/if}
+    {/each}
+  </Select>
+  <div>
+   <Select bind:node prop="operation" inline>
+       <option value=""></option>
+       {#each Object.entries(operations) as [key]}
+         {#if node.operation === operations[key].operationId}
+           <option value={operations[key].operationId} selected>{operations[key].summary}</option>
          {:else}
-             <option value={contentType}>{contentType}</option>
-         {/if}
-   {/each}
- </Select>
- Parameters <span style="font-size: 10px;">(bold & red = required parameters)</span>
- {#if node.parameters.length > 0} 
-  <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
-     <div class:required={param.required} style="display:flex; margin-top: -21px; margin-bottom: -10px" > <!-- workaround because SIR creates a checkbox with a huge fix margin-top -->
-        <div style="min-width: 99px;">
-          <Input type="checkbox" label={param.name} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
-        </div>
-      <div style="margin-left: 15px; margin-top: 21px;"> <!-- workaround css styling-->
-        {param.description}
-      </div>
-    </div>
-    <TypedInput label={"Value"} types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive}
-      on:change={(e) => {
-        node.parameters[index].value = e.detail.value
-        node.parameters[index].type = e.detail.type
-      }
-    }
-    />
-    <!-- Json Object additional information and helper buttons-->
-    {#if param.schema && param.schema.type === "object"}
-      <div style="margin-left: 104px;">
-        <Collapsible icon="sticky-note" label={"json parameters"}>
-          <Row>
-            <Button icon="show" label="Show keys" on:click={() => hideJsonKeys = !hideJsonKeys}></Button>
-            <Button icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}></Button>
-            <Button icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}></Button>
-          </Row>  
-          <div class:jsonKeys={hideJsonKeys}>
-            <!-- {#if param.schema.properties}
-              {#each Object.entries(param.schema.properties) as [propKey, prop] (propKey) } -->
+           <option value={operations[key].operationId}>{operations[key].summary}</option>
+       {/if}
+     {/each}
+   </Select> 
+   {#if {operationDescription} }
+     <div style="display: flex; margin-bottom:12px;">
+       <div style="min-width: 104px;">Description</div>
+       <div style="width: 70%">{operationDescription}</div>
+     </div>
+   {/if}
+  </div>
+  
+  <Select bind:node prop="contentType">
+    {#each contentTypes as contentType}
+     {#if node.contentType === contentType}
+       <option value={contentType} selected>{contentType}</option>
+     {:else}
+       <option value={contentType}>{contentType}</option>
+     {/if}
+    {/each}
+  </Select>
+  <div style="display: flex;">
+    <span style="width: 104px;">Parameters </span>
+    <span style="font-size: 10px;">(bold = required parameters)</span>
+  </div>
+  {#if node.parameters.length > 0} 
+    <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;"> 
+      <div class:required={param.required} style="display:flex;" >
+         <div style="min-width: 99px;">
+           <Input type="checkbox" label={param.name + ": " + param.description} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
+         </div>
+     </div>
+      <TypedInput  label={" "} types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive}
+        on:change={(e) => {
+          // if JSON-Editor (ACE) is used, it will return '[object Object]' as value, but set the correct JSON in the input field.
+          // This seems to be a bug which occurs to non default fields and SIR. As non default fields will not be saved automaticlly (and this is a correct behavior)
+          // we must use a workaround and don't save the value with the on:change event but save it when the node will be closed.
+          if (typeof e.detail.value !== "object" && e.detail.value.toString() !== "[object Object]") {
+            node.parameters[index].value = e.detail.value
+            node.parameters[index].type = e.detail.type
+          } else {
+            // within the change event window.$('#node-input-' + id).typedInput('value') would also return the wrong value
+            node.saveTypedInputAgain.push({index, "id": param.id })
+          }
+        }}
+     />
+     <!-- Json Object additional information and helper buttons-->
+     {#if param?.schema?.type === "object"}
+       <div style="margin-left: 104px;">
+         <Collapsible icon="sticky-note" label={"json parameters"}>
+           <Row>
+             <Button icon="show" label="Show keys" on:click={() => hideJsonKeys = !hideJsonKeys}></Button>
+             <Button icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}></Button>
+             <Button icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}></Button>
+           </Row>  
+           <div class:jsonKeys={hideJsonKeys}>
             {#if param.schema && param.keys}
               {#each param.keys as propKey}
                 <ul>
@@ -263,38 +299,40 @@ const setError = (message) => {
                     {#if param.schema.properties[propKey].description}<div>Description: {param.schema.properties[propKey].description}</div>{/if}
                     {#if param.schema.properties[propKey].example}<div>Example: {param.schema.properties[propKey].example}</div>{/if}
                     {#if param.schema.properties[propKey].type === "object"} 
-                      <ul>
-                        {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey) }
-                        <li>
-                          {pKey} - {p.type}
-                        </li>
-                        {/each}
+                    {'{'}  
+                    <ul>
+                      {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey) }
+                        <p class="jsonObjectKeyList">{pKey}: {p.type}</p>
+                      {/each}
                       </ul>
+                      {'}'}
                     {:else if param.schema.properties[propKey].type === "array" && param.schema.properties[propKey]?.items?.type}
                       <div>
-                        containing: {param.schema.properties[propKey].items.type}
+                        Containing: {param.schema.properties[propKey].items.type}
                         <ul>
-                          {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey].items.properties}
-                            {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey) }
-                              <li>
-                                {pKey} - {p.type}
-                              </li>
-                            {/each}
-                          {/if}
+                          {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
+                          {'{'}    
+                          {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey) } 
+                            <p class="jsonObjectKeyList">{pKey}: {p.type}</p>
+                          {/each}
+                          {'}'}
+                        {/if}
                         </ul>
                       </div>              
                     {/if}
                   </li>
                 </ul>
               {/each}
-            {:else} No properties defined.
+            {:else} 
+              No properties defined.
             {/if}
           </div>
-      </Collapsible>
-      </div>
-    {/if}
-  </EditableList>  
- {:else}
-   <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
- {/if}
+       </Collapsible>
+       </div>
+      {/if}
+    </EditableList>  
+  {:else}
+    <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
+  {/if}
+</div>
  
