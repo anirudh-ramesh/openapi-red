@@ -100,3 +100,48 @@ export const orderRequired = (a, b) => {
   }
   return comparison
 }
+
+export const createParameters = (node, operationData, oldParameters) => {
+  // openApi 3 new body style with selection
+  if (!operationData.parameters && operationData?.requestBody?.content) {
+    const requestBody = operationData.requestBody
+    const content = requestBody.content
+    const keys = sortKeys(content[node.contentType].schema)
+    if (content[node.contentType]) {
+      node.parameters.push({
+        id: 'requestBody',
+        name: 'Request body',
+        in: '',
+        schema: content[node.contentType].schema || null,
+        value: oldParameters?.[' Request body']?.value || '{}',
+        required: !!requestBody?.required || false,
+        isActive: !!requestBody?.required || oldParameters?.[' Request body']?.isActive || false,
+        description: requestBody?.description || '-',
+        type: oldParameters?.[' Request body']?.inputType || 'json',
+        allowedTypes: getAllowedTypes('json'),
+        keys
+      })
+    }
+  } else {
+    let parameters = operationData?.parameters?.sort(orderRequired)
+    if (!parameters) parameters = []
+    parameters.forEach(param => {
+      const keys = sortKeys(param.schema)
+      node.parameters.push(
+        {
+          id: param.name + param.in,
+          name: param.name,
+          in: param.in,
+          required: param.required,
+          value: oldParameters?.[param.name + ' ' + param.in]?.value || '',
+          isActive: !!param.required || oldParameters?.[param.name + ' ' + param.in]?.isActive || false,
+          type: oldParameters?.[param.name + ' ' + param.in]?.inputType || getCorrectType(param), // selected type
+          allowedTypes: getAllowedTypes(param),
+          description: param.description || '-',
+          schema: param.schema || null,
+          keys
+        }
+      )
+    })
+  }
+}

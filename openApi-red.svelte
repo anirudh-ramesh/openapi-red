@@ -43,8 +43,8 @@
  
 <script>
   export let node
-  import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from "svelte-integration-red/components"
-  import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys, orderRequired } from "./utils/htmlFunctions"
+  import { Input, TypedInput, Select, EditableList, Button } from "svelte-integration-red/components"
+  import { getApiList, createParameters } from "./utils/htmlFunctions"
   import JsonParamHelper from './utils/JsonParamHelper.svelte'
   
   let apiList = {}
@@ -92,49 +92,6 @@
   }
   if (node.openApiUrl.toString().trim()) createApi()
 
-  const createParameter = (node, operationData) => {
-    if (!operationData.parameters && operationData?.requestBody?.content) {
-      let requestBody = operationData.requestBody
-      let content = requestBody.content
-      let keys = sortKeys(content[node.contentType].schema)
-      if (content[node.contentType]) {
-        node.parameters.push({
-          id: "requestBody",
-          name: "Request body",
-          in: "",
-          schema:  content[node.contentType].schema || null,
-          value: oldParameters?.[" Request body"]?.value || "{}",
-          required: !!requestBody?.required || false,
-          isActive: !!requestBody?.required || oldParameters?.[" Request body"]?.isActive || false,
-          description: requestBody?.description || "-",
-          type: oldParameters?.[" Request body"]?.inputType || "json",
-          allowedTypes: getAllowedTypes("json"),
-          keys
-        })
-      }
-    } else {
-      let parameters = operationData?.parameters?.sort(orderRequired)
-      if (!parameters) parameters = []
-      parameters.forEach(param => {
-      let keys = sortKeys(param.schema)       
-        node.parameters.push(
-          {
-            id: param.name + param.in,
-            name: param.name,
-            in: param.in,
-            required: param.required,
-            value: oldParameters?.[param.name + " " + param.in]?.value || "",
-            isActive: !!param.required || oldParameters?.[param.name + " " + param.in]?.isActive|| false,
-            type: oldParameters?.[param.name + " " + param.in]?.inputType || getCorrectType(param), // selected type
-            allowedTypes: getAllowedTypes(param),
-            description: param.description ||"-",
-            schema: param.schema || null,
-            keys
-          }
-        )
-      })
-    }
-  }
   // set valid operations if api is set
   $: if (node.api && apiList?.[node.api]) {
       operations = apiList[node.api]
@@ -166,8 +123,7 @@
       let operationData = apiList?.[node.api]?.[node.operation]
       if (!operationData) operationData = {}
       node.operationData = operationData
-      // openApi 3 new body style with selection
-      createParameter(node,operationData)
+      createParameters(node, operationData, oldParameters)
     }
   }
   const errorHandlingOptions = ["Standard", "other output", "throw exception"]
