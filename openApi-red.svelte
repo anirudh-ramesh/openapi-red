@@ -23,7 +23,7 @@
      },
      
    oneditprepare: function() {
-    render(this)
+      render(this)
    },
    oneditsave: function() {
     let clone = this.__clone
@@ -42,88 +42,57 @@
 </script>
  
 <script>
- export let node
- import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from "svelte-integration-red/components"
- import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys, orderRequired} from "./utils/htmlFunctions"
- 
- let apiList = {}
- let error = ""
- let apis = []
- let operations = {}
- let operationDescription = "-"
- let prevOperation
- if (node.operation) prevOperation = node.operation.toString()
- node.saveTypedInputAgain = []
- let contentTypes = []
- let hideJsonKeys = true
- let oldParameters = {}
+  export let node
+  import { Input, TypedInput, Select, EditableList, Collapsible, Row, Button } from "svelte-integration-red/components"
+  import { getApiList, getAllowedTypes, getCorrectType, setJsonKeys, sortKeys, orderRequired } from "./utils/htmlFunctions"
+  import JsonParamHelper from './utils/JsonParamHelper.svelte'
+  
+  let apiList = {}
+  let error = ""
+  let apis = []
+  let operations = {}
+  let operationDescription = "-"
+  let prevOperation
+  if (node.operation) prevOperation = node.operation.toString()
+  node.saveTypedInputAgain = []
+  let contentTypes = []
+  let oldParameters = {}
 
- // save old parameter objects (openApi-red version <0.2)
+  // save old parameter objects (openApi-red version <0.2)
   if (!Array.isArray(node.parameters) && node.api && node.operation) {
     Object.assign(oldParameters, node.parameters)
     node.parameters = []
   }
-
-
- const createApi = async () => {
-  try {
-    error = ""
-    apiList = await getApiList(node.openApiUrl)
-    // if a string was returned it is a node error
-    if (typeof apiList === "string") {
-      // setError(node, apiList, error)
-      apis = []
-      operations = {}
-      contentTypes = []
-      error = apiList
-    } else {
-      apis = Object.keys(apiList)
-    }
-  } catch (e) {
-    setError(e)
-  }
-}
-if (node.openApiUrl.toString().trim()) createApi()
- 
-const setError = (message) => {
-  apis = []
-  operations = {}
-  contentTypes = []
-  error = message
-  return
-}
- // set valid operations if api is set
- $: if (node.api && apiList?.[node.api]) {
-    operations = apiList[node.api]
-    node.operation = node.operation
- } else {
+  
+  const setError = (message) => {
+    apis = []
     operations = {}
- }
- 
- // create content type selection and parameter list
- $: if (node.operation || oldParameters) {
-  operationDescription = "-"
-  if (apiList?.[node.api]?.[node.operation]?.description) {
-    operationDescription = apiList[node.api][node.operation].description
+    contentTypes = []
+    error = message
+    return
   }
-  // set valid content Types if operation is set
-  if (apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
-    contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
-  } else {
-    // needed input since an update from swagger.js
-    contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
+
+  const createApi = async () => {
+    try {
+      error = ""
+      apiList = await getApiList(node.openApiUrl)
+      // if a string was returned it is a node error
+      if (typeof apiList === "string") {
+        // setError(node, apiList, error)
+        apis = []
+        operations = {}
+        contentTypes = []
+        error = apiList
+      } else {
+        apis = Object.keys(apiList)
+      }
+    } catch (e) {
+      setError(e)
+    }
   }
-  if (!node.contentType || !contentTypes.includes(node.contentType)) {
-    node.contentType = contentTypes[0]
-  }
-  // clear parameters if operation has changed
-  if (prevOperation !== node.operation) {
-    node.parameters.splice(0, node.parameters.length)      
-    prevOperation = node.operation
-    let operationData = apiList[node.api][node.operation]
-    if (!operationData) operationData = {}
-    node.operationData = apiList[node.api][node.operation]
-    // openApi 3 new body style with selection // Warning: Experimental
+  if (node.openApiUrl.toString().trim()) createApi()
+
+  const createParameter = (node, operationData) => {
     if (!operationData.parameters && operationData?.requestBody?.content) {
       let requestBody = operationData.requestBody
       let content = requestBody.content
@@ -166,43 +135,72 @@ const setError = (message) => {
       })
     }
   }
- }
-
- const errorHandlingOptions = ["Standard", "other output", "throw exception"]
- $: if (node.errorHandling) {
-   if ("other output" === node.errorHandling) node.outputs = 2
-   else node.outputs = 1
- }
- </script>
+  // set valid operations if api is set
+  $: if (node.api && apiList?.[node.api]) {
+      operations = apiList[node.api]
+      node.operation = node.operation
+  } else {
+      operations = {}
+  }
  
- <style>
+ // create content type selection and parameter list
+  $: if (node.operation || oldParameters) {
+    operationDescription = "-"
+    if (apiList?.[node.api]?.[node.operation]?.description) {
+      operationDescription = apiList[node.api][node.operation].description
+    }
+    // set valid content Types if operation is set
+    if (apiList?.[node.api]?.[node.operation]?.requestBody?.content) {
+      contentTypes = Object.keys(apiList[node.api][node.operation].requestBody.content)
+    } else {
+      // needed input since an update from swagger.js
+      contentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
+    }
+    if (!node.contentType || !contentTypes.includes(node.contentType)) {
+      node.contentType = contentTypes[0]
+    }
+    // clear parameters if operation has changed
+    if (prevOperation !== node.operation) {
+      node.parameters.splice(0, node.parameters.length)      
+      prevOperation = node.operation
+      let operationData = apiList?.[node.api]?.[node.operation]
+      if (!operationData) operationData = {}
+      node.operationData = operationData
+      // openApi 3 new body style with selection
+      createParameter(node,operationData)
+    }
+  }
+  const errorHandlingOptions = ["Standard", "other output", "throw exception"]
+  $: if (node.errorHandling) {
+    if ("other output" === node.errorHandling) node.outputs = 2
+    else node.outputs = 1
+  }
+</script>
+ 
+<style>
   :global(#openApi-red .required, #openApi-red .required label) {
     font-weight: bold!important;
 	}
-  :global(#openApi-red .urlInput label) {
+  :global(#openApi-red .label) {
     width: 104px;
+  }
+  :global(#openApi-red .parameterInput label) {
+    width: 17px !important;
   }
   :global(#openApi-red #node-input-openApiUrl) {
     width: 70%
   }
   :global(#openApi-red .red-ui-editableList-item-content div) {
-    margin-top: 2px !important;
+    margin-top: 0px !important;
     margin-bottom: 0px !important;
   }
-
-  .jsonObjectKeyList {
-    margin-bottom: 0px;
-  }
-  .jsonKeys {
-    display: none;
-  }
- </style>
+</style>
 
 <div id="openApi-red">
   <Input bind:node prop="name" placeholder="openApi-red" />
   <div style="display: flex; align-items: baseline; margin-top: -7px; margin-bottom: 10px;">
      <div>
-       <label style="width: 104px;" for="node-input-openApiUrl">URL</label>
+       <label class="label" for="node-input-openApiUrl">URL</label>
      </div>
      <div style="width:100%;">
        <Input bind:node prop="openApiUrl" label=" " inline/>
@@ -239,7 +237,7 @@ const setError = (message) => {
    </Select> 
    {#if {operationDescription} }
      <div style="display: flex; margin-bottom:12px;">
-       <div style="min-width: 104px;">Description</div>
+       <div class="label">Description</div>
        <div style="width: 70%">{operationDescription}</div>
      </div>
    {/if}
@@ -255,16 +253,17 @@ const setError = (message) => {
     {/each}
   </Select>
   <div style="display: flex;">
-    <span style="width: 104px;">Parameters </span>
+    <span class="label">Parameters </span>
     <span style="font-size: 10px;">(bold = required parameters)</span>
   </div>
-  {#if node.parameters.length > 0} 
-    <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;"> 
-      <div class:required={param.required} style="display:flex;" >
-         <div style="min-width: 99px;">
-           <Input type="checkbox" label={param.name + ": " + param.description} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
-         </div>
-     </div>
+  {#if node.parameters.length > 0}
+  <EditableList bind:elements={node.parameters} let:element={param} let:index style="height: 400px;">
+    <div class:required={param.required} style="display:flex;" >
+        <div style="min-width: 99px;">
+          <Input type="checkbox" label={param.name + ": " + param.description} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
+        </div>
+    </div>
+    <div class="parameterInput">
       <TypedInput  label={" "} types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive}
         on:change={(e) => {
           // if JSON-Editor (ACE) is used, it will return '[object Object]' as value, but set the correct JSON in the input field.
@@ -278,59 +277,15 @@ const setError = (message) => {
             node.saveTypedInputAgain.push({index, "id": param.id })
           }
         }}
-     />
-     <!-- Json Object additional information and helper buttons-->
-     {#if param?.schema?.type === "object"}
-       <div style="margin-left: 104px;">
-         <Collapsible icon="sticky-note" label={"json parameters"}>
-           <Row>
-             <Button icon="show" label="Show keys" on:click={() => hideJsonKeys = !hideJsonKeys}></Button>
-             <Button icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}></Button>
-             <Button icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}></Button>
-           </Row>  
-           <div class:jsonKeys={hideJsonKeys}>
-            {#if param.schema && param.keys}
-              {#each param.keys as propKey}
-                <ul>
-                  <li>
-                    <div class:required={param.schema.required && param.schema.required.find(reqParam => reqParam === propKey)}>
-                        {propKey}: {param.schema.properties[propKey].type}
-                    </div>
-                    {#if param.schema.properties[propKey].description}<div>Description: {param.schema.properties[propKey].description}</div>{/if}
-                    {#if param.schema.properties[propKey].example}<div>Example: {param.schema.properties[propKey].example}</div>{/if}
-                    {#if param.schema.properties[propKey].type === "object"} 
-                    {'{'}  
-                    <ul>
-                      {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey) }
-                        <p class="jsonObjectKeyList">{pKey}: {p.type}</p>
-                      {/each}
-                      </ul>
-                      {'}'}
-                    {:else if param.schema.properties[propKey].type === "array" && param.schema.properties[propKey]?.items?.type}
-                      <div>
-                        Containing: {param.schema.properties[propKey].items.type}
-                        <ul>
-                          {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
-                          {'{'}    
-                          {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey) } 
-                            <p class="jsonObjectKeyList">{pKey}: {p.type}</p>
-                          {/each}
-                          {'}'}
-                        {/if}
-                        </ul>
-                      </div>              
-                    {/if}
-                  </li>
-                </ul>
-              {/each}
-            {:else} 
-              No properties defined.
-            {/if}
-          </div>
-       </Collapsible>
-       </div>
-      {/if}
-    </EditableList>  
+      />
+    </div>
+    <!-- Json Object additional information and helper buttons -->
+    {#if param?.schema?.type === "object"}
+      <div style="margin-left: 20px; margin-top: 10px !important;">
+        <JsonParamHelper {param}></JsonParamHelper>
+      </div>
+    {/if}
+  </EditableList>
   {:else}
     <div style="margin-top: 30px; font-weight: bold;">No parameters found!</div>
   {/if}
