@@ -1,4 +1,5 @@
 # ---> Node
+examples/.openApi-petstore.json.backup
 # Logs
 logs
 *.log

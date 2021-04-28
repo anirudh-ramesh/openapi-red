@@ -22,14 +22,14 @@ module.exports = function (RED) {
       let openApiUrl = config.openApiUrl
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
       let parameters = {}
-      let options = {}
+      let requestBody = {} // we need a separate parameter for body in OpenApi 3
 
       if (msg.openApi && msg.openApi.parameters) {
         parameters = msg.openApi.parameters
       } else {
         for (const p in config.parameters) {
           const param = config.parameters[p]
-          let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.inputType, this, msg)
+          let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.type, this, msg)
           // query input can't be object. Therefore stringify!
           if (typeof evaluatedInput === 'object' && param.in === 'query') {
             evaluatedInput = JSON.stringify(evaluatedInput)
@@ -38,15 +38,12 @@ module.exports = function (RED) {
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) {
             return node.error(`Required input for ${param.name} is missing.`, msg)
           }
-          if (param.isActive && param.name !== 'Request Body') {
+          if (param.isActive && param.name !== 'Request body') {
+          // if (param.isActive) {
             parameters[param.name] = evaluatedInput
           }
-          if (param.isActive && param.name === 'Request Body') {
-            options = {
-              requestBody: {
-                evaluatedInput
-              }
-            }
+          if (param.isActive && param.name === 'Request body') {
+            requestBody = evaluatedInput
           }
         }
       }
@@ -60,8 +57,8 @@ module.exports = function (RED) {
       }
       // fallback if no content type can be found
       let requestContentType = 'application/json'
-      if (config.requestBody) {
-        requestContentType = config.requestBody
+      if (config.contentType) {
+        requestContentType = config.contentType
       }
 
       // Start Swagger / OpenApi
@@ -71,17 +68,15 @@ module.exports = function (RED) {
           pathName,
           method,
           parameters,
+          requestBody,
           requestContentType,
           // if available put token for auth
           requestInterceptor: (req) => {
             if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
             if (msg.headers) {
-              req.headers = Object.assign(req.headers || {}, msg.headers);
+              req.headers = Object.assign(req.headers || {}, msg.headers)
             }
           }
-        }, {
-          // options object (request body for openAPI 3)
-          options
         })
           .then((res) => {
             msg.payload = res
