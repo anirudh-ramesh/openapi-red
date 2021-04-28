@@ -3,15 +3,30 @@
      category: "network",
      color: "#b197ff",
      defaults: {
-       name: 			{ value: "",  label: "Name" },
-       openApiUrl: { value: "",  label: "URL" },
-       api:        { value: "",  label: "API tag" },
-       operation:  { value: "",  label: "Operation"},
-       operationData: {value: {}},
-       errorHandling: {value: "",label: "Error handling"},
-       parameters: { value: [],  label: "Parameters"},
-       contentType: {value: "",  label: "Content Type"},
-       outputs: {value: 1}
+        name: 			{ value: "",  label: "Name" },
+        openApiUrl: { value: "",  label: "URL" },
+        api:        { value: "",  label: "API tag" },
+        operation:  { value: "",  label: "Operation"},
+        operationData: {value: {}},
+        errorHandling: {value: "",label: "Error handling"},
+        parameters: { value: [],  label: "Parameters", validate: function(parameters) {
+          console.log(parameters, parameters.length)
+          if (!parameters || parameters.length === 0 ) {
+            return true
+          } else {
+            let isValid = true
+            parameters.forEach(p => {
+              if (isValid) {
+                if (p.required && p.value.trim() === "") isValid = false
+                // validation of typedinput only if element exists!
+                if (isValid && window.$("#node-input-" + p.id).length) isValid = window.$("#node-input-" + p.id).typedInput('validate')
+              }
+            })
+            return isValid
+          }
+        }},
+        contentType: {value: "",  label: "Content Type"},
+        outputs: {value: 1}
      },
      inputs:1,
      outputs:1,

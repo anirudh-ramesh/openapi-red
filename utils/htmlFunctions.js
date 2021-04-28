@@ -36,47 +36,6 @@ export const getAllowedTypes = (input) => {
   return ['str', 'json', 'jsonata', 'msg', 'flow', 'global']
 }
 
-export const setJsonKeys = (param, option) => {
-  const required = []
-  const notRequired = []
-  const exists = []
-  const propKeys = Object.keys(param.schema.properties)
-  let fieldValue = window.$('#node-input-' + param.id).typedInput('value')
-  try {
-    fieldValue = JSON.parse(fieldValue)
-  } catch {
-    fieldValue = {}
-  }
-
-  propKeys.forEach(prop => {
-    if (fieldValue[prop]) {
-      const value = fieldValue[prop]
-      // chk if value is empty array or object -> would return "" otherwise
-      if (typeof value === 'object') {
-        if (Array.isArray(value) && value.length === 0) exists.push(`"${prop}": []`)
-        else if (Object.keys(value).length === 0) exists.push(`"${prop}": {}`)
-        else exists.push(`"${prop}": "${value}"`)
-      } else {
-        exists.push(`"${prop}": "${value}"`)
-      }
-    } else {
-      let isRequired = false
-      if (param.schema.required) isRequired = param.schema.required.find(reqParam => reqParam === prop)
-      if (isRequired) {
-        required.push(`"${prop}": "${param.schema.properties[prop].type} - required"`)
-      } else {
-        notRequired.push(`"${prop}": "${param.schema.properties[prop].type}"`)
-      }
-    }
-  })
-
-  let result = required.concat(exists)
-  if (option === 'default') result = result.concat(notRequired)
-  result = '{' + result.join(', ') + '}'
-  // jQuery because setting node.parameters[index].value does not work
-  window.$('#node-input-' + param.id).typedInput('value', result)
-}
-
 // is an object
 export const sortKeys = (schema) => {
   let keys = null
