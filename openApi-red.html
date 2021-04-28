@@ -5514,7 +5514,7 @@ function get_each_context_1$1(ctx, list, i) {
 	return child_ctx;
 }
 
-// (51:2) <Row>
+// (50:0) <Row>
 function create_default_slot$1(ctx) {
 	let button0;
 	let t0;
@@ -5581,7 +5581,7 @@ function create_default_slot$1(ctx) {
 	};
 }
 
-// (95:4) {:else}
+// (94:2) {:else}
 function create_else_block$1(ctx) {
 	let t;
 
@@ -5599,7 +5599,7 @@ function create_else_block$1(ctx) {
 	};
 }
 
-// (57:4) {#if param.schema && param.keys}
+// (56:2) {#if param.schema && param.keys}
 function create_if_block$1(ctx) {
 	let each_1_anchor;
 	let each_value = /*param*/ ctx[0].keys;
@@ -5655,7 +5655,7 @@ function create_if_block$1(ctx) {
 	};
 }
 
-// (64:12) {#if param.schema.properties[propKey].description}
+// (63:10) {#if param.schema.properties[propKey].description}
 function create_if_block_5$1(ctx) {
 	let div;
 	let t0;
@@ -5682,7 +5682,7 @@ function create_if_block_5$1(ctx) {
 	};
 }
 
-// (67:12) {#if param.schema.properties[propKey].example}
+// (66:10) {#if param.schema.properties[propKey].example}
 function create_if_block_4$1(ctx) {
 	let div;
 	let t0;
@@ -5709,7 +5709,7 @@ function create_if_block_4$1(ctx) {
 	};
 }
 
-// (78:121) 
+// (77:119) 
 function create_if_block_2$1(ctx) {
 	let div1;
 	let div0;
@@ -5759,7 +5759,7 @@ function create_if_block_2$1(ctx) {
 	};
 }
 
-// (70:12) {#if param.schema.properties[propKey].type === "object"}
+// (69:10) {#if param.schema.properties[propKey].type === "object"}
 function create_if_block_1$1(ctx) {
 	let t0_value = "{" + "";
 	let t0;
@@ -5825,7 +5825,7 @@ function create_if_block_1$1(ctx) {
 	};
 }
 
-// (81:16) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
+// (80:14) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
 function create_if_block_3$1(ctx) {
 	let t0_value = "{" + "";
 	let t0;
@@ -5891,7 +5891,7 @@ function create_if_block_3$1(ctx) {
 	};
 }
 
-// (84:20) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey)}
+// (83:18) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey)}
 function create_each_block_2$1(key_1, ctx) {
 	let p;
 	let t0_value = /*pKey*/ ctx[10] + "";
@@ -5928,7 +5928,7 @@ function create_each_block_2$1(key_1, ctx) {
 	};
 }
 
-// (73:16) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey)}
+// (72:14) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey)}
 function create_each_block_1$1(key_1, ctx) {
 	let p;
 	let t0_value = /*pKey*/ ctx[10] + "";
@@ -5965,7 +5965,7 @@ function create_each_block_1$1(key_1, ctx) {
 	};
 }
 
-// (58:6) {#each param.keys as propKey}
+// (57:4) {#each param.keys as propKey}
 function create_each_block$1(ctx) {
 	let ul;
 	let li;
@@ -6245,8 +6245,8 @@ class JsonParamHelper extends SvelteComponent {
 
 function add_css() {
 	var style = element("style");
-	style.id = "svelte-4dgy0i-style";
-	style.textContent = "#openApi-red .required, #openApi-red .required label{font-weight:bold!important}#openApi-red .label{width:104px}#openApi-red .parameterInput label{width:17px !important}#openApi-red #node-input-openApiUrl{width:70%\n  }#openApi-red .red-ui-editableList-item-content div{margin-top:0px !important;margin-bottom:0px !important}#openApi-red .red-ui-editableList-container{min-height:300px;height:100% !important;overflow-y:hidden !important}#openApi-red .red-ui-editableList .red-ui-typedInput-container{width:90% !important}";
+	style.id = "svelte-1sy3m14-style";
+	style.textContent = "#openApi-red .required, #openApi-red .required label{font-weight:bold!important}#openApi-red .label{width:104px}#openApi-red .parameterInput label{width:17px !important}#openApi-red #node-input-openApiUrl{width:70%\n  }#openApi-red .red-ui-editableList-item-content div{margin-top:0px !important;margin-bottom:0px !important}#openApi-red .red-ui-editableList-container{min-height:300px;height:100% !important;overflow-y:hidden !important}#openApi-red .red-ui-editableList .red-ui-typedInput-container{width:90% !important}#openApi-red .nodeError{color:red}";
 	append(document.head, style);
 }
 
@@ -6274,7 +6274,7 @@ function get_each_context_3(ctx, list, i) {
 	return child_ctx;
 }
 
-// (192:4) {#each errorHandlingOptions as eOption}
+// (191:4) {#each errorHandlingOptions as eOption}
 function create_each_block_3(ctx) {
 	let option;
 	let t_value = /*eOption*/ ctx[32] + "";
@@ -6298,7 +6298,7 @@ function create_each_block_3(ctx) {
 	};
 }
 
-// (191:2) <Select bind:node prop="errorHandling" >
+// (190:2) <Select bind:node prop='errorHandling' >
 function create_default_slot_4(ctx) {
 	let each_1_anchor;
 	let each_value_3 = /*errorHandlingOptions*/ ctx[7];
@@ -6354,7 +6354,7 @@ function create_default_slot_4(ctx) {
 	};
 }
 
-// (203:8) {:else}
+// (202:8) {:else}
 function create_else_block_3(ctx) {
 	let option;
 	let t_value = /*api*/ ctx[29] + "";
@@ -6386,7 +6386,7 @@ function create_else_block_3(ctx) {
 	};
 }
 
-// (201:8) {#if node.api === api}
+// (200:8) {#if node.api === api}
 function create_if_block_5(ctx) {
 	let option;
 	let t_value = /*api*/ ctx[29] + "";
@@ -6419,7 +6419,7 @@ function create_if_block_5(ctx) {
 	};
 }
 
-// (200:6) { #each apis as api}
+// (199:6) { #each apis as api}
 function create_each_block_2(ctx) {
 	let if_block_anchor;
 
@@ -6460,7 +6460,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (198:2) <Select bind:node prop="api" >
+// (197:2) <Select bind:node prop='api' >
 function create_default_slot_3(ctx) {
 	let option;
 	let t;
@@ -6528,7 +6528,7 @@ function create_default_slot_3(ctx) {
 	};
 }
 
-// (214:9) {:else}
+// (213:9) {:else}
 function create_else_block_2(ctx) {
 	let option;
 	let t_value = /*operations*/ ctx[4][/*key*/ ctx[26]].summary + "";
@@ -6560,7 +6560,7 @@ function create_else_block_2(ctx) {
 	};
 }
 
-// (212:9) {#if node.operation === operations[key].operationId}
+// (211:9) {#if node.operation === operations[key].operationId}
 function create_if_block_4(ctx) {
 	let option;
 	let t_value = /*operations*/ ctx[4][/*key*/ ctx[26]].summary + "";
@@ -6593,7 +6593,7 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (211:7) {#each Object.entries(operations) as [key]}
+// (210:7) {#each Object.entries(operations) as [key]}
 function create_each_block_1(ctx) {
 	let if_block_anchor;
 
@@ -6634,7 +6634,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (209:3) <Select bind:node prop="operation" inline>
+// (208:3) <Select bind:node prop='operation' inline>
 function create_default_slot_2(ctx) {
 	let option;
 	let t;
@@ -6702,7 +6702,7 @@ function create_default_slot_2(ctx) {
 	};
 }
 
-// (219:3) {#if {operationDescription} }
+// (218:3) {#if {operationDescription} }
 function create_if_block_3(ctx) {
 	let div2;
 	let div0;
@@ -6739,7 +6739,7 @@ function create_if_block_3(ctx) {
 	};
 }
 
-// (231:5) {:else}
+// (230:5) {:else}
 function create_else_block_1(ctx) {
 	let option;
 	let t_value = /*contentType*/ ctx[23] + "";
@@ -6771,7 +6771,7 @@ function create_else_block_1(ctx) {
 	};
 }
 
-// (229:5) {#if node.contentType === contentType}
+// (228:5) {#if node.contentType === contentType}
 function create_if_block_2(ctx) {
 	let option;
 	let t_value = /*contentType*/ ctx[23] + "";
@@ -6804,7 +6804,7 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (228:4) {#each contentTypes as contentType}
+// (227:4) {#each contentTypes as contentType}
 function create_each_block(ctx) {
 	let if_block_anchor;
 
@@ -6845,7 +6845,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (227:2) <Select bind:node prop="contentType">
+// (226:2) <Select bind:node prop='contentType'>
 function create_default_slot_1(ctx) {
 	let each_1_anchor;
 	let each_value = /*contentTypes*/ ctx[1];
@@ -6901,7 +6901,7 @@ function create_default_slot_1(ctx) {
 	};
 }
 
-// (271:2) {:else}
+// (269:2) {:else}
 function create_else_block(ctx) {
 	let div;
 
@@ -6924,7 +6924,7 @@ function create_else_block(ctx) {
 	};
 }
 
-// (240:2) {#if node.parameters.length > 0}
+// (239:2) {#if node.parameters.length > 0}
 function create_if_block(ctx) {
 	let editablelist;
 	let updating_elements;
@@ -6990,7 +6990,7 @@ function create_if_block(ctx) {
 	};
 }
 
-// (265:4) {#if param?.schema?.type === "object"}
+// (263:4) {#if param?.schema?.type === 'object'}
 function create_if_block_1(ctx) {
 	let div;
 	let jsonparamhelper;
@@ -7030,7 +7030,7 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (242:2) <EditableList bind:elements={node.parameters} let:element={param} let:index>
+// (240:2) <EditableList bind:elements={node.parameters} let:element={param} let:index>
 function create_default_slot(ctx) {
 	let div1;
 	let div0;
@@ -7663,12 +7663,7 @@ function instance($$self, $$props, $$invalidate) {
 
 			// if a string was returned it is a node error
 			if (typeof apiList === "string") {
-				// setError(node, apiList, error)
-				$$invalidate(3, apis = []);
-
-				$$invalidate(4, operations = {});
-				$$invalidate(1, contentTypes = []);
-				$$invalidate(2, error = apiList);
+				setError(apiList);
 			} else {
 				$$invalidate(3, apis = Object.keys(apiList));
 			}
@@ -7817,7 +7812,7 @@ function instance($$self, $$props, $$invalidate) {
 class OpenApi_red extends SvelteComponent {
 	constructor(options) {
 		super();
-		if (!document.getElementById("svelte-4dgy0i-style")) add_css();
+		if (!document.getElementById("svelte-1sy3m14-style")) add_css();
 		init(this, options, instance, create_fragment, safe_not_equal, { node: 0 }, [-1, -1]);
 	}
 }

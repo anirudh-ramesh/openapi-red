@@ -94,11 +94,7 @@
       apiList = await getApiList(node.openApiUrl)
       // if a string was returned it is a node error
       if (typeof apiList === 'string') {
-        // setError(node, apiList, error)
-        apis = []
-        operations = {}
-        contentTypes = []
-        error = apiList
+        setError(apiList)
       } else {
         apis = Object.keys(apiList)
       }
@@ -173,6 +169,9 @@
   }
   :global(#openApi-red .red-ui-editableList .red-ui-typedInput-container) {
     width: 90% !important;
+  }
+  :global(#openApi-red .nodeError) {
+    color: red;
   }
 
 </style>

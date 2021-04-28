@@ -52,3 +52,9 @@ You find that example also in the sample flow (see below).
 You can find a sample flow in the node red imports where you can see some examples on how to configure the node.
 
 ![Example](https://gitlab.com/2WeltenChris/openapi-red/raw/master/examples/examples.png?raw=true "Example Node")
+
+## Developers
+
+If you want to modify something inside the openApi-red.html file, I recommend to use [SIR](https://gitlab.com/2WeltenChris/svelte-integration-red).
+
+With help of SIR you can handle the openApi-red.svelte file in which the code is much cleaner and easier to handle.
