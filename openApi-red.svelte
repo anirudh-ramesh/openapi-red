@@ -10,7 +10,7 @@
         operationData: {value: {}},
         errorHandling: {value: '',label: 'Error handling'},
         parameters: { value: [],  label: 'Parameters', validate: function(parameters) {
-          if (!parameters || parameters.length === 0 ) {
+          if (!parameters || !Array.isArray(parameters) || parameters.length === 0 ) {
             return true
           } else {
             let isValid = true
@@ -74,12 +74,6 @@
   let contentTypes = []
   let oldParameters = {}
 
-  // save old parameter objects (openApi-red version <0.2)
-  if (!Array.isArray(node.parameters) && node.api && node.operation) {
-    Object.assign(oldParameters, node.parameters)
-    node.parameters = []
-  }
-  
   const setError = (message) => {
     apis = []
     operations = {}
@@ -92,6 +86,14 @@
     try {
       error = ''
       apiList = await getApiList(node.openApiUrl)
+
+      // save old parameter objects (openApi-red version <0.2) - changed from object to array objects
+      if (!Array.isArray(node.parameters) && node.api && node.operation) {
+        Object.assign(oldParameters, node.parameters)
+        node.parameters = []
+        prevOperation = ""
+        node.operationData = apiList?.[node.api]?.[node.operation]
+      }
       // if a string was returned it is a node error
       if (typeof apiList === 'string') {
         setError(apiList)
@@ -113,7 +115,7 @@
   }
  
  // create content type selection and parameter list
-  $: if (node.operation || oldParameters) {
+  $: if (node.operation) {
     operationDescription = '-'
     if (apiList?.[node.api]?.[node.operation]?.description) {
       operationDescription = apiList[node.api][node.operation].description
@@ -138,6 +140,7 @@
       createParameters(node, operationData, oldParameters)
     }
   }
+
   const errorHandlingOptions = ['Standard', 'other output', 'throw exception']
   $: if (node.errorHandling) {
     if ('other output' === node.errorHandling) node.outputs = 2
