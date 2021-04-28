@@ -29,7 +29,6 @@ module.exports = function (RED) {
       } else {
         for (const p in config.parameters) {
           const param = config.parameters[p]
-          console.log(param.value, param.type)
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.type, this, msg)
           // query input can't be object. Therefore stringify!
           if (typeof evaluatedInput === 'object' && param.in === 'query') {

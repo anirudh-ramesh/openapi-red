@@ -3131,7 +3131,7 @@ function create_else_block$3(ctx) {
 	};
 }
 
-// (78:19) 
+// (73:19) 
 function create_if_block_3$3(ctx) {
 	let span;
 
@@ -3151,7 +3151,7 @@ function create_if_block_3$3(ctx) {
 	};
 }
 
-// (76:15) 
+// (71:15) 
 function create_if_block_2$3(ctx) {
 	let span;
 
@@ -3171,7 +3171,7 @@ function create_if_block_2$3(ctx) {
 	};
 }
 
-// (72:0) {#if !updateNode || (prop && typeProp)}
+// (67:0) {#if !updateNode || (prop && typeProp)}
 function create_if_block$6(ctx) {
 	let label_1;
 	let t0;
@@ -3284,7 +3284,7 @@ function create_if_block$6(ctx) {
 	};
 }
 
-// (73:61) {#if icon}
+// (68:61) {#if icon}
 function create_if_block_1$4(ctx) {
 	let i;
 	let i_class_value;
@@ -3404,18 +3404,6 @@ function instance$6($$self, $$props, $$invalidate) {
 			if (updateNode) {
 				$$invalidate(10, node[prop] = value, node);
 				$$invalidate(10, node[typeProp] = type, node);
-			}
-
-			// the validation of typedInput fields will not be set automaticlly. Therefor we put it
-			// in the default validate. This must be be copied in the build-html.js update function.
-			if (node?._def?.defaults?.[id] && !node?._def?.defaults?.[id].validate) {
-				$$invalidate(
-					10,
-					node._def.defaults[id].validate = v => {
-						return window.$("#node-input-" + id).typedInput("validate");
-					},
-					node
-				);
 			}
 
 			dispatch("change", { id, value, type });
@@ -5496,25 +5484,25 @@ function add_css$1() {
 
 function get_each_context$1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[7] = list[i];
+	child_ctx[8] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_2$1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[10] = list[i][0];
-	child_ctx[11] = list[i][1];
+	child_ctx[11] = list[i][0];
+	child_ctx[12] = list[i][1];
 	return child_ctx;
 }
 
 function get_each_context_1$1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[10] = list[i][0];
-	child_ctx[11] = list[i][1];
+	child_ctx[11] = list[i][0];
+	child_ctx[12] = list[i][1];
 	return child_ctx;
 }
 
-// (50:0) <Row>
+// (55:0) <Row>
 function create_default_slot$1(ctx) {
 	let button0;
 	let t0;
@@ -5524,22 +5512,22 @@ function create_default_slot$1(ctx) {
 	let current;
 
 	button0 = new Button({
-			props: { icon: "show", label: "Show keys" }
+			props: { icon: "show", label: /*label*/ ctx[2] }
 		});
 
-	button0.$on("click", /*click_handler*/ ctx[3]);
+	button0.$on("click", /*click_handler*/ ctx[4]);
 
 	button1 = new Button({
 			props: { icon: "edit", label: "Set default" }
 		});
 
-	button1.$on("click", /*click_handler_1*/ ctx[4]);
+	button1.$on("click", /*click_handler_1*/ ctx[5]);
 
 	button2 = new Button({
 			props: { icon: "edit", label: "Set required" }
 		});
 
-	button2.$on("click", /*click_handler_2*/ ctx[5]);
+	button2.$on("click", /*click_handler_2*/ ctx[6]);
 
 	return {
 		c() {
@@ -5557,7 +5545,11 @@ function create_default_slot$1(ctx) {
 			mount_component(button2, target, anchor);
 			current = true;
 		},
-		p: noop,
+		p(ctx, dirty) {
+			const button0_changes = {};
+			if (dirty & /*label*/ 4) button0_changes.label = /*label*/ ctx[2];
+			button0.$set(button0_changes);
+		},
 		i(local) {
 			if (current) return;
 			transition_in(button0.$$.fragment, local);
@@ -5581,7 +5573,7 @@ function create_default_slot$1(ctx) {
 	};
 }
 
-// (94:2) {:else}
+// (99:2) {:else}
 function create_else_block$1(ctx) {
 	let t;
 
@@ -5599,7 +5591,7 @@ function create_else_block$1(ctx) {
 	};
 }
 
-// (56:2) {#if param.schema && param.keys}
+// (61:2) {#if param.schema && param.keys}
 function create_if_block$1(ctx) {
 	let each_1_anchor;
 	let each_value = /*param*/ ctx[0].keys;
@@ -5655,11 +5647,11 @@ function create_if_block$1(ctx) {
 	};
 }
 
-// (63:10) {#if param.schema.properties[propKey].description}
+// (68:10) {#if param.schema.properties[propKey].description}
 function create_if_block_5$1(ctx) {
 	let div;
 	let t0;
-	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].description + "";
+	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].description + "";
 	let t1;
 
 	return {
@@ -5674,7 +5666,7 @@ function create_if_block_5$1(ctx) {
 			append(div, t1);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].description + "")) set_data(t1, t1_value);
+			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].description + "")) set_data(t1, t1_value);
 		},
 		d(detaching) {
 			if (detaching) detach(div);
@@ -5682,11 +5674,11 @@ function create_if_block_5$1(ctx) {
 	};
 }
 
-// (66:10) {#if param.schema.properties[propKey].example}
+// (71:10) {#if param.schema.properties[propKey].example}
 function create_if_block_4$1(ctx) {
 	let div;
 	let t0;
-	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].example + "";
+	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].example + "";
 	let t1;
 
 	return {
@@ -5701,7 +5693,7 @@ function create_if_block_4$1(ctx) {
 			append(div, t1);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].example + "")) set_data(t1, t1_value);
+			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].example + "")) set_data(t1, t1_value);
 		},
 		d(detaching) {
 			if (detaching) detach(div);
@@ -5709,15 +5701,15 @@ function create_if_block_4$1(ctx) {
 	};
 }
 
-// (77:119) 
+// (82:119) 
 function create_if_block_2$1(ctx) {
 	let div1;
 	let div0;
 	let t0;
-	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.type + "";
+	let t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.type + "";
 	let t1;
 	let t2;
-	let if_block = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.type === "object" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]]?.items?.properties && create_if_block_3$1(ctx);
+	let if_block = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.type === "object" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]]?.items?.properties && create_if_block_3$1(ctx);
 
 	return {
 		c() {
@@ -5737,9 +5729,9 @@ function create_if_block_2$1(ctx) {
 			if (if_block) if_block.m(div1, null);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.type + "")) set_data(t1, t1_value);
+			if (dirty & /*param*/ 1 && t1_value !== (t1_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.type + "")) set_data(t1, t1_value);
 
-			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.type === "object" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]]?.items?.properties) {
+			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.type === "object" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]]?.items?.properties) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
@@ -5759,7 +5751,7 @@ function create_if_block_2$1(ctx) {
 	};
 }
 
-// (69:10) {#if param.schema.properties[propKey].type === "object"}
+// (74:10) {#if param.schema.properties[propKey].type === "object"}
 function create_if_block_1$1(ctx) {
 	let t0_value = "{" + "";
 	let t0;
@@ -5770,8 +5762,8 @@ function create_if_block_1$1(ctx) {
 	let t2;
 	let t3_value = "}" + "";
 	let t3;
-	let each_value_1 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].properties);
-	const get_key = ctx => /*pKey*/ ctx[10];
+	let each_value_1 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].properties);
+	const get_key = ctx => /*pKey*/ ctx[11];
 
 	for (let i = 0; i < each_value_1.length; i += 1) {
 		let child_ctx = get_each_context_1$1(ctx, each_value_1, i);
@@ -5806,7 +5798,7 @@ function create_if_block_1$1(ctx) {
 		},
 		p(ctx, dirty) {
 			if (dirty & /*Object, param*/ 1) {
-				each_value_1 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].properties);
+				each_value_1 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].properties);
 				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, ul, destroy_block, create_each_block_1$1, null, get_each_context_1$1);
 			}
 		},
@@ -5825,7 +5817,7 @@ function create_if_block_1$1(ctx) {
 	};
 }
 
-// (80:14) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
+// (85:14) {#if param.schema.properties[propKey].items.type === "object" && param.schema.properties[propKey]?.items?.properties}
 function create_if_block_3$1(ctx) {
 	let t0_value = "{" + "";
 	let t0;
@@ -5836,8 +5828,8 @@ function create_if_block_3$1(ctx) {
 	let t2;
 	let t3_value = "}" + "";
 	let t3;
-	let each_value_2 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.properties);
-	const get_key = ctx => /*pKey*/ ctx[10];
+	let each_value_2 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.properties);
+	const get_key = ctx => /*pKey*/ ctx[11];
 
 	for (let i = 0; i < each_value_2.length; i += 1) {
 		let child_ctx = get_each_context_2$1(ctx, each_value_2, i);
@@ -5872,7 +5864,7 @@ function create_if_block_3$1(ctx) {
 		},
 		p(ctx, dirty) {
 			if (dirty & /*Object, param*/ 1) {
-				each_value_2 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].items.properties);
+				each_value_2 = Object.entries(/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].items.properties);
 				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_2, each_1_lookup, ul, destroy_block, create_each_block_2$1, null, get_each_context_2$1);
 			}
 		},
@@ -5891,13 +5883,13 @@ function create_if_block_3$1(ctx) {
 	};
 }
 
-// (83:18) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey)}
+// (88:18) {#each Object.entries(param.schema.properties[propKey].items.properties) as [pKey, p] (pKey)}
 function create_each_block_2$1(key_1, ctx) {
 	let p;
-	let t0_value = /*pKey*/ ctx[10] + "";
+	let t0_value = /*pKey*/ ctx[11] + "";
 	let t0;
 	let t1;
-	let t2_value = /*p*/ ctx[11].type + "";
+	let t2_value = /*p*/ ctx[12].type + "";
 	let t2;
 
 	return {
@@ -5919,8 +5911,8 @@ function create_each_block_2$1(key_1, ctx) {
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*pKey*/ ctx[10] + "")) set_data(t0, t0_value);
-			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*p*/ ctx[11].type + "")) set_data(t2, t2_value);
+			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*pKey*/ ctx[11] + "")) set_data(t0, t0_value);
+			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*p*/ ctx[12].type + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(p);
@@ -5928,13 +5920,13 @@ function create_each_block_2$1(key_1, ctx) {
 	};
 }
 
-// (72:14) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey)}
+// (77:14) {#each Object.entries(param.schema.properties[propKey].properties) as [pKey, p] (pKey)}
 function create_each_block_1$1(key_1, ctx) {
 	let p;
-	let t0_value = /*pKey*/ ctx[10] + "";
+	let t0_value = /*pKey*/ ctx[11] + "";
 	let t0;
 	let t1;
-	let t2_value = /*p*/ ctx[11].type + "";
+	let t2_value = /*p*/ ctx[12].type + "";
 	let t2;
 
 	return {
@@ -5956,8 +5948,8 @@ function create_each_block_1$1(key_1, ctx) {
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*pKey*/ ctx[10] + "")) set_data(t0, t0_value);
-			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*p*/ ctx[11].type + "")) set_data(t2, t2_value);
+			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*pKey*/ ctx[11] + "")) set_data(t0, t0_value);
+			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*p*/ ctx[12].type + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(p);
@@ -5965,15 +5957,15 @@ function create_each_block_1$1(key_1, ctx) {
 	};
 }
 
-// (57:4) {#each param.keys as propKey}
+// (62:4) {#each param.keys as propKey}
 function create_each_block$1(ctx) {
 	let ul;
 	let li;
 	let div;
-	let t0_value = /*propKey*/ ctx[7] + "";
+	let t0_value = /*propKey*/ ctx[8] + "";
 	let t0;
 	let t1;
-	let t2_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].type + "";
+	let t2_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].type + "";
 	let t2;
 	let t3;
 	let t4;
@@ -5981,15 +5973,15 @@ function create_each_block$1(ctx) {
 	let t6;
 
 	function func(...args) {
-		return /*func*/ ctx[6](/*propKey*/ ctx[7], ...args);
+		return /*func*/ ctx[7](/*propKey*/ ctx[8], ...args);
 	}
 
-	let if_block0 = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].description && create_if_block_5$1(ctx);
-	let if_block1 = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].example && create_if_block_4$1(ctx);
+	let if_block0 = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].description && create_if_block_5$1(ctx);
+	let if_block1 = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].example && create_if_block_4$1(ctx);
 
 	function select_block_type_1(ctx, dirty) {
-		if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].type === "object") return create_if_block_1$1;
-		if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].type === "array" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]]?.items?.type) return create_if_block_2$1;
+		if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].type === "object") return create_if_block_1$1;
+		if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].type === "array" && /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]]?.items?.type) return create_if_block_2$1;
 	}
 
 	let current_block_type = select_block_type_1(ctx);
@@ -6029,14 +6021,14 @@ function create_each_block$1(ctx) {
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*propKey*/ ctx[7] + "")) set_data(t0, t0_value);
-			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].type + "")) set_data(t2, t2_value);
+			if (dirty & /*param*/ 1 && t0_value !== (t0_value = /*propKey*/ ctx[8] + "")) set_data(t0, t0_value);
+			if (dirty & /*param*/ 1 && t2_value !== (t2_value = /*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].type + "")) set_data(t2, t2_value);
 
 			if (dirty & /*param*/ 1) {
 				toggle_class(div, "required", /*param*/ ctx[0].schema.required && /*param*/ ctx[0].schema.required.find(func));
 			}
 
-			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].description) {
+			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].description) {
 				if (if_block0) {
 					if_block0.p(ctx, dirty);
 				} else {
@@ -6049,7 +6041,7 @@ function create_each_block$1(ctx) {
 				if_block0 = null;
 			}
 
-			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[7]].example) {
+			if (/*param*/ ctx[0].schema.properties[/*propKey*/ ctx[8]].example) {
 				if (if_block1) {
 					if_block1.p(ctx, dirty);
 				} else {
@@ -6126,7 +6118,7 @@ function create_fragment$1(ctx) {
 		p(ctx, [dirty]) {
 			const row_changes = {};
 
-			if (dirty & /*$$scope, param, hideJsonKeys*/ 65539) {
+			if (dirty & /*$$scope, param, label, hideJsonKeys*/ 131079) {
 				row_changes.$$scope = { dirty, ctx };
 			}
 
@@ -6213,6 +6205,7 @@ function instance$1($$self, $$props, $$invalidate) {
 	};
 
 	let hideJsonKeys = true;
+	let label = "Show Keys";
 	const click_handler = () => $$invalidate(1, hideJsonKeys = !hideJsonKeys);
 	const click_handler_1 = () => setJsonKeys(param, "default");
 	const click_handler_2 = () => setJsonKeys(param, "required");
@@ -6222,9 +6215,20 @@ function instance$1($$self, $$props, $$invalidate) {
 		if ("param" in $$props) $$invalidate(0, param = $$props.param);
 	};
 
+	$$self.$$.update = () => {
+		if ($$self.$$.dirty & /*hideJsonKeys*/ 2) {
+			if (hideJsonKeys) {
+				$$invalidate(2, label = "Show Keys");
+			} else {
+				$$invalidate(2, label = "Hide Keys");
+			}
+		}
+	};
+
 	return [
 		param,
 		hideJsonKeys,
+		label,
 		setJsonKeys,
 		click_handler,
 		click_handler_1,

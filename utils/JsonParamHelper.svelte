@@ -1,5 +1,5 @@
 <script>
-  import { Collapsible, Row, Button } from "svelte-integration-red/components"
+  import { Row, Button } from "svelte-integration-red/components"
   export let param
 
   const setJsonKeys = (param, option) => {
@@ -43,12 +43,17 @@
     window.$('#node-input-' + param.id).typedInput('value', result)
   }
 
-
   let hideJsonKeys = true
+  let label = "Show Keys"
+  $: if (hideJsonKeys) {
+    label = "Show Keys"
+  } else {
+    label = "Hide Keys"
+  }
 </script>
 
 <Row>
-  <Button icon="show" label="Show keys" on:click={() => (hideJsonKeys = !hideJsonKeys)} />
+  <Button icon="show" label={label} on:click={() => (hideJsonKeys = !hideJsonKeys)} />
   <Button icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}/>
   <Button icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}/>
 </Row>
