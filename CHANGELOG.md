@@ -1,5 +1,10 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.0**
+
+- UI is now based on [SIR](https://gitlab.com/2WeltenChris/svelte-integration-red)
+- Bugfix: Body can now be used again with OpenAPI 3
+
 **Version 0.1.11**
 
 - Merged authentification and proxy request by Tristan Bastian
