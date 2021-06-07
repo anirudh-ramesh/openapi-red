@@ -107,21 +107,26 @@ module.exports = function (RED) {
         Object.keys(path).forEach((operationKey) => {
           const operation = path[operationKey]
           let opId = operation.operationId
-          // fallback if no operation id exists
-          if (!opId) {
-            opId = operationKey + pathKey
-            operation.operationId = opId
-            operation.withoutOriginalOpId = true
-            operation.pathName = pathKey
-            operation.method = operationKey
-          }
 
-          // default if no array tag exists
-          if (operation.tags.constructor !== Array || operation.tags.length === 0) operation.tags = ['default']
-          for (const tag of operation.tags) {
-            if (!newApiList[tag]) newApiList[tag] = {}
-            operation.path = pathKey
-            newApiList[tag][opId] = operation
+          if (typeof operation === 'object') {
+
+            // fallback if no operation id exists
+            if (!opId) {
+              opId = operationKey + pathKey
+              operation.operationId = opId
+              operation.withoutOriginalOpId = true
+              operation.pathName = pathKey
+              operation.method = operationKey
+            }
+
+            // default if no array tag exists
+            if ((!operation.tags) || operation.tags.constructor !== Array || operation.tags.length === 0) operation.tags = ['default']
+            for (const tag of operation.tags) {
+              if (!newApiList[tag]) newApiList[tag] = {}
+              operation.path = pathKey
+              newApiList[tag][opId] = operation
+            }
+
           }
         })
       })
