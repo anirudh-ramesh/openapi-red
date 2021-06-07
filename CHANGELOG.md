@@ -1,5 +1,9 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.1**
+
+- Fixed #3: URL properties were interpreted as operations
+
 **Version 1.0.0**
 
 - UI is now based on [SIR](https://gitlab.com/2WeltenChris/svelte-integration-red)
