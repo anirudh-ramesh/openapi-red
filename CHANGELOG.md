@@ -1,5 +1,12 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.2**
+
+- Added response content type as selection
+- Experimental feature added: Changing server
+- Updated to latest SIR version
+- Grouped general and api options UI (-> can be hidden now)
+
 **Version 1.0.1**
 
 - Fixed #3: URL properties were interpreted as operations

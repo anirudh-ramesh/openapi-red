@@ -53,9 +53,9 @@
 </script>
 
 <Row>
-  <Button icon="show" label={label} on:click={() => (hideJsonKeys = !hideJsonKeys)} />
-  <Button icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}/>
-  <Button icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}/>
+  <Button inline icon="show" label={label} on:click={() => (hideJsonKeys = !hideJsonKeys)} />
+  <Button inline icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}/>
+  <Button inline icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}/>
 </Row>
 <div class:jsonKeys={hideJsonKeys}>
   {#if param.schema && param.keys}

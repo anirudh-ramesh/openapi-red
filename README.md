@@ -34,6 +34,7 @@ JSON parameters may define a sample structure. You can set this as the value by 
 
 If the API requires an authentification token you can log in using the standard `http-request` node of Node-RED. The JWT token you get as a response must then be put into `msg.openApiToken` to be automatically placed in the request-header as bearer authentification.
 In case you would like to use a different authentification than bearer, you can use `msg.headers` as you can do with the default http request node of Node-RED.
+
 ## 5. Error handling
 
 You can choose how to handle a returning server error. The last server response object will be placed in msg.response instead of msg.error. This ensures that all 3 ways react the same.

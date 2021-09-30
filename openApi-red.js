@@ -1,26 +1,39 @@
 const Swagger = require('swagger-client')
 
-function sendError (node, config, msg, e) {
-  // node.error can't save the data we
-  if (e.message && isNaN(e.message.substring(0, 1)) && e.status) e.message = e.status + ' ' + e.message
-  msg.response = e.response
-  if (config.errorHandling === 'other output') {
-    node.send([null, msg])
-  } else if (config.errorHandling === 'throw exception') {
-    node.error(e.message, msg)
-  } else {
-    node.send(msg)
-  }
-}
-
 module.exports = function (RED) {
   function openApiRed (config) {
     RED.nodes.createNode(this, config)
     const node = this
 
-    node.on('input', function (msg) {
+    node.on('input', function (msg, send, done) {
+      // backward compatibility
+      send = send || function () { node.send.apply(node, arguments) }
+      if (typeof config.requestContentType === 'undefined') config.requestContentType = config.contentType
+      if (typeof config.responseContentType === 'undefined') config.responseContentType = ''
+      if (typeof config.alternServer === 'undefined') config.alternServer = false
+
+      const sendError = (e) => {
+        let errorMsg = e.message
+        if (e.message && isNaN(e.message.substring(0, 1)) && e.status) {
+          errorMsg = e.status + ' ' + e.message
+        }
+        msg.response = e.response
+        if (config.errorHandling === 'other output') {
+          send([null, msg])
+        } else if (config.errorHandling === 'throw exception') {
+          if (done) {
+            done(errorMsg)
+          } else {
+            node.error(errorMsg, msg)
+          }
+        } else {
+          send(msg)
+          if (done) done()
+        }
+      }
+
       let openApiUrl = config.openApiUrl
-      if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
+      if (msg.openApi?.url) openApiUrl = msg.openApi.url
       let parameters = {}
       let requestBody = {} // we need a separate parameter for body in OpenApi 3
 
@@ -36,7 +49,7 @@ module.exports = function (RED) {
           }
           // can't use 'if (evaluatedInput)' due to values false and 0
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) {
-            return node.error(`Required input for ${param.name} is missing.`, msg)
+            return done(`Required input for ${param.name} is missing.`, msg)
           }
           if (param.isActive && param.name !== 'Request body') {
           // if (param.isActive) {
@@ -57,46 +70,63 @@ module.exports = function (RED) {
       }
       // fallback if no content type can be found
       let requestContentType = 'application/json'
-      if (config.contentType) {
-        requestContentType = config.contentType
+      if (config.requestContentType) requestContentType = config.requestContentType
+
+      const openApiOptions = {
+        operationId,
+        pathName,
+        method,
+        parameters,
+        requestBody,
+        requestContentType,
+        // if available put token for auth
+        requestInterceptor: (req) => {
+          if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
+          if (msg.headers) req.headers = Object.assign(req.headers || {}, msg.headers)
+          /**
+           * Warning: Experimental: should work as stated in https://github.com/swagger-api/swagger-js/issues/1901
+           */
+          // reroute to a different server
+          let newServerUrl
+          if (config.server && config.alternServer) {
+            const oldUrl = new URL(openApiUrl)
+            if (config.server.startsWith('/')) {
+              newServerUrl = oldUrl.origin + config.server
+            } else {
+              newServerUrl = config.server
+            }
+            let openApiUrlWithoutFilename = openApiUrl.split('/')
+            openApiUrlWithoutFilename.pop()
+            openApiUrlWithoutFilename = openApiUrlWithoutFilename.join('/')
+            const urlParam = req.url.replace(openApiUrlWithoutFilename, '')
+            req.url = newServerUrl + urlParam
+          }
+        }
       }
+      if (config.responseContentType) openApiOptions.responseContentType = config.responseContentType
 
       // Start Swagger / OpenApi
       Swagger(openApiUrl).then((client) => {
-        client.execute({
-          operationId,
-          pathName,
-          method,
-          parameters,
-          requestBody,
-          requestContentType,
-          // if available put token for auth
-          requestInterceptor: (req) => {
-            if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
-            if (msg.headers) {
-              req.headers = Object.assign(req.headers || {}, msg.headers)
-            }
-          }
-        })
+        client.execute(openApiOptions)
           .then((res) => {
             msg.payload = res
-            node.send(msg)
+            send(msg)
+            if (done) done()
           }).catch((e) => {
-            sendError(node, config, msg, e)
+            return sendError(e)
           })
       }).catch(e => {
-        sendError(node, config, msg, e)
+        return sendError(e)
       })
     })
   }
   RED.nodes.registerType('openApi-red', openApiRed)
 
   // create API List
-  RED.httpAdmin.get('/getNewOpenApiInfo', (request, response) => {
+  RED.httpAdmin.get('/getOpenApiSpec', (request, response) => {
     const openApiUrl = request.query.openApiUrl
     if (!openApiUrl) {
-      response.send("Missing or invalid openApiUrl parameter 'openApiUrl': " + openApiUrl)
-      return
+      return response.send("Missing or invalid openApiUrl parameter 'openApiUrl': " + openApiUrl)
     }
     const decodedUrl = decodeURIComponent(openApiUrl)
     const newApiList = {}
@@ -109,7 +139,6 @@ module.exports = function (RED) {
           let opId = operation.operationId
 
           if (typeof operation === 'object') {
-
             // fallback if no operation id exists
             if (!opId) {
               opId = operationKey + pathKey
@@ -126,14 +155,23 @@ module.exports = function (RED) {
               operation.path = pathKey
               newApiList[tag][opId] = operation
             }
-
           }
         })
       })
-      response.send(newApiList)
+      response.send({
+        apiList: newApiList,
+        info: client.spec.info,
+        security: client.spec.security,
+        servers: client.spec.servers
+      })
     }).catch((e) => {
-      if (e.message) response.send(e.message.toString())
-      else response.send('Error: ' + e)
+      if (e.message) {
+        let errorMsg = e.message
+        if (e.response.data) errorMsg = errorMsg + ': ' + e.response.data
+        response.send(errorMsg)
+      } else {
+        throw new Error('Error' + e)
+      }
     })
   })
 }
