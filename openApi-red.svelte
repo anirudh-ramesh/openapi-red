@@ -94,6 +94,7 @@
     return
   }
 
+  const init = true
   const createApi = async () => {
     try {
       error = ""
@@ -118,6 +119,7 @@
     } catch (e) {
       setError(e)
     }
+    init = false
   }
   if (node.openApiUrl.toString().trim()) createApi()
   // set valid operations if api is set
@@ -217,7 +219,7 @@
         {/if}
       </div>
       <Row>
-        <Select inline bind:node prop="server" fading={false} disabled={!node.alternServer}>
+        <Select inline bind:node prop="server"  disabled={!node.alternServer}>
           {#each servers as s}
             {#if s.description}
               <option disabled>{s.description}</option>
@@ -249,7 +251,7 @@
           {/if}
         {/each}
     </Select>
-    <Select bind:node prop="operation" fading={false}>
+    <Select bind:node prop="operation" >
       <option value=""></option>
       {#each Object.entries(operations) as [key]}
         {#if node.operation === operations[key].operationId}
@@ -262,7 +264,7 @@
     
     {#if operationDescription && operationDescription !== "-"}
     <div style="margin-left: 113px; margin-bottom: 12px;">
-      <Callout type="info" closeable bind:show={showDescription}>
+      <Callout type="info" closeable bind:show={showDescription} fading={!init}>
         <span slot="header">Description</span>
         {@html operationDescription}
       </Callout>
@@ -282,7 +284,7 @@
       {/each}
     </Select>
     {#if responseContentTypes.length }
-      <Select bind:node prop="responseContentType" fading={false}>
+      <Select bind:node prop="responseContentType" fading={!init} >
         {#each responseContentTypes as resCT}
           {#if node.responseContentType === resCT}
             <option value={resCT} selected>{resCT}</option>
@@ -300,11 +302,11 @@
   <span class="required" style="font-size: 10px;">(bold = required parameters)</span>
 </div>
 {#if node.parameters.length > 0}
-  <EditableList bind:elements={node.parameters} let:element={param} let:index>
+  <EditableList bind:elements={node.parameters} let:element={param} let:index >
     <div class:required={param.required}>
       <Input type="checkbox" label={param.name + ": " + param.description} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
     </div>
-    <TypedInput types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive}
+    <TypedInput types={param.allowedTypes} type={param.type} value={param.value} id={param.id} disabled={!param.isActive} 
       on:change={(e) => {
         // if JSON-Editor (ACE) is used, it will return "[object Object]" as value, but set the correct JSON in the input field.
         // This seems to be a bug which occurs to non default fields and SIR. As non default fields will not be saved automaticlly (and this is a correct behavior)

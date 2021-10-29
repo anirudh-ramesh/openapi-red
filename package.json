@@ -1,6 +1,6 @@
 {
   "name": "openapi-red",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "OpenAPI (Swagger) client for node-red ",
   "author": "Carl Lohrmann GmbH",
   "contributors": [
@@ -37,6 +37,6 @@
   },
   "devDependencies": {
     "standard": "^16.0.3",
-    "svelte-integration-red": "^0.1.89"
+    "svelte-integration-red": "^1.0.9"
   }
 }
