@@ -1,5 +1,9 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.4**
+
+- Fixing parameters css styling
+
 **Version 1.0.3**
 
 - Bugfix: show request body if available, even if there are additional parameters

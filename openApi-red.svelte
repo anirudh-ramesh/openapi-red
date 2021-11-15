@@ -193,6 +193,7 @@
   :global(#openApi-red-svelte-container .sir-collapsible.sir-form-row) { 
     align-items: normal;
   }
+  :global(#openApi-red-svelte-container .noLongLabel label) { width: 105px !important; }
 </style>
 
 {#if error}
@@ -274,7 +275,7 @@
     </div>
     {/if}
     
-    <Select bind:node prop="requestContentType">
+    <Select clazz="noLongLabel" bind:node prop="requestContentType">
       {#each requestContentTypes as reqCT}
         {#if node.requestContentType === reqCT}
           <option value={reqCT} selected>{reqCT}</option>
@@ -284,7 +285,7 @@
       {/each}
     </Select>
     {#if responseContentTypes.length }
-      <Select bind:node prop="responseContentType" fading={!init} >
+      <Select clazz="noLongLabel" bind:node prop="responseContentType" fading={!init} >
         {#each responseContentTypes as resCT}
           {#if node.responseContentType === resCT}
             <option value={resCT} selected>{resCT}</option>
@@ -302,7 +303,7 @@
   <span class="required" style="font-size: 10px;">(bold = required parameters)</span>
 </div>
 {#if node.parameters.length > 0}
-  <EditableList bind:elements={node.parameters} let:element={param} let:index >
+  <EditableList bind:elements={node.parameters} let:element={param} let:index maxHeight="800" >
     <div class:required={param.required}>
       <Input type="checkbox" label={param.name + ": " + param.description} value={param.isActive} disabled={param.required} on:change={e => node.parameters[index].isActive = e.detail.value}/>
     </div>
