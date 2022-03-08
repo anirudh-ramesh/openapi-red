@@ -1,5 +1,10 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.6**
+- UI Fixes
+- Select from Array Bugfix
+- Return correct error
+
 **Version 1.0.5**
 
 - removed optional chaining on server side as Node-RED still supports node.js v.12

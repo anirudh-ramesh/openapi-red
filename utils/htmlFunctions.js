@@ -18,7 +18,7 @@ export const getCorrectType = (param) => {
   if (type === 'boolean') return 'bool'
   if (type === 'integer') return 'num'
   if (param.name === 'Json Request Body' || param.name === 'body' || type === 'body' || type === 'object') return 'json'
-  if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return 'array'
+  if (param?.items?.enum?.length > 0 || param?.schema?.enum?.length) return 'select'
   return 'str'
 }
 
@@ -29,7 +29,7 @@ export const getAllowedTypes = (input) => {
   if (type === 'bool') return ['bool', 'msg', 'flow', 'global']
   if (type === 'num') return ['num', 'jsonata', 'msg', 'flow', 'global']
   if (type === 'json') return ['json', 'jsonata', 'msg', 'flow', 'global']
-  if (type === 'array') {
+  if (type === 'select') {
     const options = input?.items?.enum || input?.schema?.enum
     return [{ value: 'select', label: 'Select', options: options }, 'str', 'msg', 'flow', 'global']
   }
@@ -60,15 +60,15 @@ export const orderRequired = (a, b) => {
   return comparison
 }
 
-export const createParameters = (node, operationData, oldParameters) => {
+export const createParameters = (node, oldParameters) => {
   // new in openApi: body request
   // check if requestBody is in parameters or separate
-  if (!operationData.parameters?.requestBody && operationData?.requestBody?.content) {
-    const requestBody = operationData.requestBody
+  if (!node.operationData.parameters?.requestBody && node.operationData?.requestBody?.content) {
+    const requestBody = node.operationData.requestBody
     const content = requestBody.content
     const keys = sortKeys(content[node.contentType].schema)
     if (content[node.contentType]) {
-      node.parameters.push({
+      const newParameter = {
         id: 'requestBody',
         name: 'Request body',
         in: '',
@@ -80,11 +80,12 @@ export const createParameters = (node, operationData, oldParameters) => {
         type: oldParameters?.[' Request body']?.inputType || 'json',
         allowedTypes: getAllowedTypes('json'),
         keys
-      })
+      }
+      node.parameters.push(newParameter)
     }
   }
   // add standard parameters
-  const parameters = operationData?.parameters?.sort(orderRequired) || []
+  const parameters = node.operationData?.parameters?.sort(orderRequired) || []
   parameters.forEach(param => {
     const keys = sortKeys(param.schema)
     node.parameters.push(

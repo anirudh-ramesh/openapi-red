@@ -4,13 +4,21 @@
      color: "#b197ff",
      defaults: {
         name: 			    { value: "",  label: "Name" },
-        openApiUrl:     { value: "",  label: "URL" },
+        openApiUrl:     { value: "",  label: "URL", validate: function(v) {
+                          if (!v) return false
+                          const urlWithoutFileExtension = v.substring(0, v.lastIndexOf('.'))
+                          const urlExpression = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi
+                          if (urlWithoutFileExtension.match(new RegExp(urlExpression))) {
+                            return true
+                          }
+                          return false
+                        }},
         api:            { value: "",  label: "API tag" },
         server:         { value: "" },
         alternServer:      { value: false, label: "Use server option"},
         operation:      { value: "",  label: "Operation" },
         operationData:  { value: {} },
-        errorHandling:  { value: "",label: "Error handling" },
+        errorHandling:  { value: "Standard",label: "Error handling" },
         parameters:     { value: [],  label: "Parameters", validate: function(parameters) {
           if (!parameters || !Array.isArray(parameters) || parameters.length === 0 ) {
             return true
@@ -40,7 +48,7 @@
      },
      
    oneditprepare: function() {
-      render(this)
+      render(this, { minWidth: "600px" } )
    },
    oneditsave: function() {
     let clone = this.__clone
@@ -94,7 +102,7 @@
     return
   }
 
-  const init = true
+  let init = true
   const createApi = async () => {
     try {
       error = ""
@@ -149,6 +157,8 @@
       // needed input since an update from swagger.js
       requestContentTypes = ["application/json","application/x-www-form-urlencoded","multipart/form-data"]
     }
+    node.requestContentType = node.requestContentType || requestContentTypes[0]
+
     if (operationSchema?.responses) {
       const responseKeys = Object.keys(operationSchema.responses)
       responseKeys.forEach( r => {
@@ -158,11 +168,12 @@
         }
       })
     }
-    if (!responseContentTypes.length) {
-      node.responseContentType = ""
-    } else {
+    if (responseContentTypes.length) {
       // distinct array
       responseContentTypes = Array.from(new Set(responseContentTypes))
+      node.responseContentType = node.responseContentType || responseContentTypes[0]
+    } else {
+      node.responseContentType = ""
     }
 
     if (!node.contentType || !requestContentTypes.includes(node.contentType)) {
@@ -172,10 +183,8 @@
     if (prevOperation !== node.operation) {
       node.parameters.splice(0, node.parameters.length)      
       prevOperation = node.operation
-      let operationData = apiList?.[node.api]?.[node.operation]
-      if (!operationData) operationData = {}
-      node.operationData = operationData
-      createParameters(node, operationData, oldParameters)
+      node.operationData = apiList?.[node.api]?.[node.operation] || {}
+      createParameters(node, oldParameters)
     }
   }
 
@@ -187,13 +196,18 @@
 </script>
  
 <style>
-    :global(#openApi-red-svelte-container :is(.required, .required label)) {
-    font-weight: bold!important;
+ :global(#openApi-red-svelte-container :is(.required, .required label)) {
+    font-weight: bold !important;
 	}
-  :global(#openApi-red-svelte-container .sir-collapsible.sir-form-row) { 
+  :global(.sir-Group.paddingBottom > .sir-Group-container) {
+    padding-bottom: 12px;
+  }
+  /*  :global(#openApi-red-svelte-container .sir-collapsible.sir-form-row) { 
     align-items: normal;
   }
-  :global(#openApi-red-svelte-container .noLongLabel label) { width: 105px !important; }
+  :global(#openApi-red-svelte-container .noLongLabel label) { 
+    width: 105px !important;
+  } */
 </style>
 
 {#if error}
@@ -203,8 +217,8 @@
   </Callout>
 {/if}
 
-<Collapsible label="General">
-  <Group>
+<Collapsible label="General" indented={false}>
+  <Group clazz="paddingBottom">
     <Input bind:node prop="name" placeholder="openApi-red" />
     <Row>
       <Input bind:node prop="openApiUrl" label="URL" inline/>
@@ -215,7 +229,7 @@
         {#if node.alternServer}
         <Callout type="warning" closeable>
           <span slot="header">Alternative Server is an experimental Feature!</span>
-          Setting an alternative server was not tested in a practical environment, but should work. If not, please set a bug report!
+          Setting an alternative server was not tested in a practical environment, but should work. If not, please make a bug report!
         </Callout>
         {/if}
       </div>
@@ -240,8 +254,8 @@
     </Select>
   </Group>
 </Collapsible>
-<Collapsible label="Api options">
-  <Group>
+<Collapsible label="Api options" indented={false}>
+  <Group clazz="paddingBottom">
     <Select bind:node prop="api" >
       <option value=""></option>
         { #each apis as api}
@@ -264,7 +278,7 @@
     </Select>
     
     {#if operationDescription && operationDescription !== "-"}
-    <div style="margin-left: 113px; margin-bottom: 12px;">
+    <div style="margin-bottom: 12px;">
       <Callout type="info" closeable bind:show={showDescription} fading={!init}>
         <span slot="header">Description</span>
         {@html operationDescription}
@@ -331,4 +345,3 @@
     No parameters found!
   </Callout>
 {/if}
-  

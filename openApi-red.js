@@ -34,7 +34,7 @@ module.exports = function (RED) {
 
       let openApiUrl = config.openApiUrl
       // no optional chaining as long as Node-Red supports node.js v12
-      // if (msg?.openApi?.url) openApiUrl = msg.openApi.url      
+      // if (msg?.openApi?.url) openApiUrl = msg.openApi.url
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
       let parameters = {}
       let requestBody = {} // we need a separate parameter for body in OpenApi 3
@@ -169,7 +169,10 @@ module.exports = function (RED) {
     }).catch((e) => {
       if (e.message) {
         let errorMsg = e.message
-        if (e.response.data) errorMsg = errorMsg + ': ' + e.response.data
+        // e?.response?.data
+        if (e && e.response && e.response.data) {
+          errorMsg = errorMsg + ': ' + e.response.data
+        }
         response.send(errorMsg)
       } else {
         throw new Error('Error' + e)
