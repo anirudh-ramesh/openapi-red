@@ -44,11 +44,11 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 530,
+        "x": 510,
         "y": 140,
         "wires": []
     },
@@ -97,6 +97,7 @@
         "openApiUrl": "https://petstore.swagger.io/v2/swagger.json",
         "api": "pet",
         "server": "",
+        "keepAuth": "",
         "alternServer": false,
         "operation": "addPet",
         "operationData": {
@@ -328,8 +329,9 @@
         ],
         "requestContentType": "application/json",
         "responseContentType": "",
+        "showDescription": true,
         "outputs": 1,
-        "x": 360,
+        "x": 340,
         "y": 100,
         "wires": [
             [
@@ -345,6 +347,7 @@
         "openApiUrl": "https://petstore.swagger.io/v2/swagger.json",
         "api": "pet",
         "server": "",
+        "keepAuth": false,
         "alternServer": false,
         "operation": "getPetById",
         "operationData": {
@@ -371,6 +374,7 @@
         ],
         "requestContentType": "application/json",
         "responseContentType": "",
+        "showDescription": true,
         "outputs": 1,
         "x": 350,
         "y": 140,
@@ -614,6 +618,7 @@
         "openApiUrl": "https://petstore.swagger.io/v2/swagger.json",
         "api": "pet",
         "server": "",
+        "keepAuth": "",
         "alternServer": false,
         "operation": "addPet",
         "operationData": {
@@ -720,6 +725,7 @@
         ],
         "requestContentType": "application/json",
         "responseContentType": "",
+        "showDescription": true,
         "outputs": 1,
         "x": 330,
         "y": 480,
@@ -745,7 +751,7 @@
         "z": "eecec5c9.d293c8",
         "name": "pet shop swagger example",
         "info": "",
-        "x": 180,
+        "x": 190,
         "y": 60,
         "wires": []
     },
@@ -1080,6 +1086,7 @@
         "openApiUrl": "https://petstore3.swagger.io/api/v3/openapi.json",
         "api": "pet",
         "server": "",
+        "keepAuth": "",
         "alternServer": false,
         "operation": "getPetById",
         "operationData": {
@@ -1325,6 +1332,7 @@
         ],
         "requestContentType": "application/json",
         "responseContentType": "application/json",
+        "showDescription": true,
         "outputs": 1,
         "x": 350,
         "y": 300,
@@ -1342,6 +1350,7 @@
         "openApiUrl": "https://petstore3.swagger.io/api/v3/openapi.json",
         "api": "pet",
         "server": "",
+        "keepAuth": "",
         "alternServer": false,
         "operation": "addPet",
         "operationData": {
@@ -1916,6 +1925,7 @@
         ],
         "requestContentType": "application/json",
         "responseContentType": "application/json",
+        "showDescription": true,
         "outputs": 1,
         "x": 340,
         "y": 260,
@@ -1931,8 +1941,233 @@
         "z": "eecec5c9.d293c8",
         "name": "pet shop openApi 3 example",
         "info": "",
-        "x": 190,
+        "x": 200,
         "y": 220,
         "wires": []
+    },
+    {
+        "id": "442f1205bdfc8e6e",
+        "type": "inject",
+        "z": "eecec5c9.d293c8",
+        "name": "",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 340,
+        "wires": [
+            [
+                "766aed465993c38a"
+            ]
+        ]
+    },
+    {
+        "id": "a7b8f2bd24952c68",
+        "type": "debug",
+        "z": "eecec5c9.d293c8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 710,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "766aed465993c38a",
+        "type": "file in",
+        "z": "eecec5c9.d293c8",
+        "name": "",
+        "filename": "C:\\test\\dog.jpg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 360,
+        "y": 340,
+        "wires": [
+            [
+                "b43e02e855ab0fbf"
+            ]
+        ]
+    },
+    {
+        "id": "b43e02e855ab0fbf",
+        "type": "openApi-red",
+        "z": "eecec5c9.d293c8",
+        "name": "",
+        "openApiUrl": "https://petstore3.swagger.io/api/v3/openapi.json",
+        "api": "pet",
+        "server": "",
+        "keepAuth": "",
+        "alternServer": false,
+        "operation": "uploadFile",
+        "operationData": {
+            "tags": [
+                "pet"
+            ],
+            "summary": "uploads an image",
+            "description": "",
+            "operationId": "uploadFile",
+            "parameters": [
+                {
+                    "name": "petId",
+                    "in": "path",
+                    "description": "ID of pet to update",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                {
+                    "name": "additionalMetadata",
+                    "in": "query",
+                    "description": "Additional Metadata",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "requestBody": {
+                "content": {
+                    "application/octet-stream": {
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "successful operation",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "integer",
+                                        "format": "int32"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "message": {
+                                        "type": "string"
+                                    }
+                                },
+                                "xml": {
+                                    "name": "##default"
+                                },
+                                "$$ref": "https://petstore3.swagger.io/api/v3/openapi.json#/components/schemas/ApiResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "security": [
+                {
+                    "petstore_auth": [
+                        "write:pets",
+                        "read:pets"
+                    ]
+                }
+            ],
+            "__originalOperationId": "uploadFile",
+            "path": "/pet/{petId}/uploadImage"
+        },
+        "errorHandling": "Standard",
+        "parameters": [
+            {
+                "id": "requestBody",
+                "name": "Request body",
+                "in": "",
+                "schema": {
+                    "type": "string",
+                    "format": "binary"
+                },
+                "value": "payload",
+                "required": false,
+                "isActive": true,
+                "description": "-",
+                "type": "msg",
+                "allowedTypes": [
+                    "json",
+                    "jsonata",
+                    "msg",
+                    "flow",
+                    "global"
+                ],
+                "keys": null
+            },
+            {
+                "id": "petIdpath",
+                "name": "petId",
+                "in": "path",
+                "required": true,
+                "value": "66",
+                "isActive": true,
+                "type": "num",
+                "allowedTypes": [
+                    "num",
+                    "jsonata",
+                    "msg",
+                    "flow",
+                    "global"
+                ],
+                "description": "ID of pet to update",
+                "schema": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "keys": null
+            },
+            {
+                "id": "additionalMetadataquery",
+                "name": "additionalMetadata",
+                "in": "query",
+                "required": false,
+                "value": "",
+                "isActive": false,
+                "type": "str",
+                "allowedTypes": [
+                    "str",
+                    "json",
+                    "jsonata",
+                    "msg",
+                    "flow",
+                    "global"
+                ],
+                "description": "Additional Metadata",
+                "schema": {
+                    "type": "string"
+                },
+                "keys": null
+            }
+        ],
+        "requestContentType": "application/octet-stream",
+        "responseContentType": "application/json",
+        "showDescription": true,
+        "outputs": 1,
+        "x": 530,
+        "y": 340,
+        "wires": [
+            [
+                "a7b8f2bd24952c68"
+            ]
+        ]
     }
 ]

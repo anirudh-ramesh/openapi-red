@@ -1,5 +1,11 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.7**
+- Code refactoring
+- UI Tweaks
+- Added 'Keep authentification'
+- Keep description closed 
+
 **Version 1.0.6**
 - UI Fixes
 - Select from Array Bugfix

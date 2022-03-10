@@ -1,3 +1,5 @@
+const { createNewApiList, getNewServerUrl } = require('./utils/server.js')
+const { createBackwardCompatible } = require('./utils/utils.js')
 const Swagger = require('swagger-client')
 
 module.exports = function (RED) {
@@ -6,13 +8,10 @@ module.exports = function (RED) {
     const node = this
 
     node.on('input', function (msg, send, done) {
-      // backward compatibility
       send = send || function () { node.send.apply(node, arguments) }
-      if (typeof config.requestContentType === 'undefined') config.requestContentType = config.contentType
-      if (typeof config.responseContentType === 'undefined') config.responseContentType = ''
-      if (typeof config.alternServer === 'undefined') config.alternServer = false
-
+      createBackwardCompatible(config)
       const sendError = (e) => {
+        node.status({ fill: 'red', shape: 'dot', text: 'Error' })
         let errorMsg = e.message
         if (e.message && isNaN(e.message.substring(0, 1)) && e.status) {
           errorMsg = e.status + ' ' + e.message
@@ -32,20 +31,20 @@ module.exports = function (RED) {
         }
       }
 
-      let openApiUrl = config.openApiUrl
+      let openApiUrl = (msg.openApi && msg.openApi.url) ? msg.openApi.url : config.openApiUrl
       // no optional chaining as long as Node-Red supports node.js v12
       // if (msg?.openApi?.url) openApiUrl = msg.openApi.url
       if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
+
       let parameters = {}
       let requestBody = {} // we need a separate parameter for body in OpenApi 3
-
       if (msg.openApi && msg.openApi.parameters) {
         parameters = msg.openApi.parameters
       } else {
         for (const p in config.parameters) {
           const param = config.parameters[p]
           let evaluatedInput = RED.util.evaluateNodeProperty(param.value, param.type, this, msg)
-          // query input can't be object. Therefore stringify!
+          // query input can't be object
           if (typeof evaluatedInput === 'object' && param.in === 'query') {
             evaluatedInput = JSON.stringify(evaluatedInput)
           }
@@ -53,12 +52,12 @@ module.exports = function (RED) {
           if (param.required && (evaluatedInput === '' || evaluatedInput === null || evaluatedInput === undefined)) {
             return done(`Required input for ${param.name} is missing.`, msg)
           }
-          if (param.isActive && param.name !== 'Request body') {
-          // if (param.isActive) {
-            parameters[param.name] = evaluatedInput
-          }
-          if (param.isActive && param.name === 'Request body') {
-            requestBody = evaluatedInput
+          if (param.isActive) {
+            if (param.name !== 'Request body') {
+              parameters[param.name] = evaluatedInput
+            } else {
+              requestBody = evaluatedInput
+            }
           }
         }
       }
@@ -85,23 +84,15 @@ module.exports = function (RED) {
         requestInterceptor: (req) => {
           if (msg.openApiToken) req.headers.Authorization = 'Bearer ' + msg.openApiToken
           if (msg.headers) req.headers = Object.assign(req.headers || {}, msg.headers)
+          if (!config.keepAuth) {
+            delete msg.openApiToken
+            delete msg.headers
+          }
           /**
-           * Warning: Experimental: should work as stated in https://github.com/swagger-api/swagger-js/issues/1901
+           * Warning: Reroute to a different server is experimental: should work as stated in https://github.com/swagger-api/swagger-js/issues/1901
            */
-          // reroute to a different server
-          let newServerUrl
           if (config.server && config.alternServer) {
-            const oldUrl = new URL(openApiUrl)
-            if (config.server.startsWith('/')) {
-              newServerUrl = oldUrl.origin + config.server
-            } else {
-              newServerUrl = config.server
-            }
-            let openApiUrlWithoutFilename = openApiUrl.split('/')
-            openApiUrlWithoutFilename.pop()
-            openApiUrlWithoutFilename = openApiUrlWithoutFilename.join('/')
-            const urlParam = req.url.replace(openApiUrlWithoutFilename, '')
-            req.url = newServerUrl + urlParam
+            req.url = getNewServerUrl(config, openApiUrl, req.url)
           }
         }
       }
@@ -109,8 +100,10 @@ module.exports = function (RED) {
 
       // Start Swagger / OpenApi
       Swagger(openApiUrl).then((client) => {
+        node.status({ fill: 'yellow', shape: 'dot', text: 'Retrieving...' })
         client.execute(openApiOptions)
           .then((res) => {
+            node.status({})
             msg.payload = res
             send(msg)
             if (done) done()
@@ -131,35 +124,8 @@ module.exports = function (RED) {
       return response.send("Missing or invalid openApiUrl parameter 'openApiUrl': " + openApiUrl)
     }
     const decodedUrl = decodeURIComponent(openApiUrl)
-    const newApiList = {}
     Swagger(decodedUrl).then((client) => {
-      const paths = client.spec.paths
-      Object.keys(paths).forEach((pathKey) => {
-        const path = paths[pathKey]
-        Object.keys(path).forEach((operationKey) => {
-          const operation = path[operationKey]
-          let opId = operation.operationId
-
-          if (typeof operation === 'object') {
-            // fallback if no operation id exists
-            if (!opId) {
-              opId = operationKey + pathKey
-              operation.operationId = opId
-              operation.withoutOriginalOpId = true
-              operation.pathName = pathKey
-              operation.method = operationKey
-            }
-
-            // default if no array tag exists
-            if ((!operation.tags) || operation.tags.constructor !== Array || operation.tags.length === 0) operation.tags = ['default']
-            for (const tag of operation.tags) {
-              if (!newApiList[tag]) newApiList[tag] = {}
-              operation.path = pathKey
-              newApiList[tag][opId] = operation
-            }
-          }
-        })
-      })
+      const newApiList = createNewApiList(client)
       response.send({
         apiList: newApiList,
         info: client.spec.info,

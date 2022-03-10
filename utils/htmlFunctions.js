@@ -1,19 +1,14 @@
-export async function getOpenApiSpec (openApiUrl) {
+const getOpenApiSpec = async (openApiUrl) => {
   const url = encodeURI(openApiUrl)
   // server call
   return window.$.get('getOpenApiSpec?openApiUrl=' + url, function (response) {
     return response
+  }).fail(function (message) {
+    return message
   })
-    .fail(function (message) {
-      return message
-    })
 }
 
-export function objectHasValues (object) {
-  return (typeof object === 'object' && Object.keys(object).length > 0 && object.constructor === Object)
-}
-
-export const getCorrectType = (param) => {
+const getCorrectType = (param) => {
   const type = param?.schema?.type || param.type
   if (type === 'boolean') return 'bool'
   if (type === 'integer') return 'num'
@@ -22,7 +17,7 @@ export const getCorrectType = (param) => {
   return 'str'
 }
 
-export const getAllowedTypes = (input) => {
+const getAllowedTypes = (input) => {
   let type
   if (typeof input === 'string') type = input
   else type = getCorrectType(input)
@@ -36,8 +31,7 @@ export const getAllowedTypes = (input) => {
   return ['str', 'json', 'jsonata', 'msg', 'flow', 'global']
 }
 
-// is an object
-export const sortKeys = (schema) => {
+const sortKeys = (schema) => {
   let keys = null
   if (schema?.properties) {
     // ordering keys helps later with svelte #each (first required then normal and sorted alphabetical)
@@ -49,8 +43,8 @@ export const sortKeys = (schema) => {
   }
   return keys
 }
-// is an array
-export const orderRequired = (a, b) => {
+
+const orderRequired = (a, b) => {
   let comparison = 0
   if (b.required) {
     comparison = 1
@@ -60,7 +54,7 @@ export const orderRequired = (a, b) => {
   return comparison
 }
 
-export const createParameters = (node, oldParameters) => {
+const createParameters = (node, oldParameters) => {
   // new in openApi: body request
   // check if requestBody is in parameters or separate
   if (!node.operationData.parameters?.requestBody && node.operationData?.requestBody?.content) {
@@ -104,4 +98,27 @@ export const createParameters = (node, oldParameters) => {
       }
     )
   })
+}
+
+const createOperationDescription = (apiList, node) => {
+  let operationDescription = ''
+  if (apiList?.[node.api]?.[node.operation]?.description) {
+    operationDescription = apiList[node.api][node.operation].description
+    // sanitize html
+    const denyList = ['script', 'object', 'embed', 'link']
+    denyList.forEach(d => {
+      const searchParam = new RegExp('<\/?' + d + '>', 'gm') // eslint-disable-line
+      operationDescription = operationDescription.replace(searchParam, '"<"' + d + '">"')
+    })
+  }
+  return operationDescription
+}
+
+module.exports = {
+  getOpenApiSpec,
+  getCorrectType,
+  getAllowedTypes,
+  sortKeys,
+  createParameters,
+  createOperationDescription
 }
