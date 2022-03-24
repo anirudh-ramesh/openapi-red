@@ -28,9 +28,13 @@
   },
   "license": "MIT",
   "node-red": {
+    "version": ">=2.0.0",
     "nodes": {
       "openApi-red": "openApi-red.js"
     }
+  },
+  "engines": {
+    "node": ">=12.0.0"
   },
   "dependencies": {
     "swagger-client": "^3.16.1"
