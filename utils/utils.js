@@ -5,6 +5,7 @@ const createBackwardCompatible = (obj) => {
   if (typeof obj.alternServer === 'undefined') obj.alternServer = false
   if (typeof obj.keepAuth === 'undefined') obj.keepAuth = false
   if (typeof obj.showDescription === 'undefined') obj.showDescription = true
+  if (typeof obj.internalErrors === 'undefined') obj.internalErrors = {}
 }
 
 module.exports = {

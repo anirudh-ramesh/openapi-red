@@ -5,13 +5,10 @@
      defaults: {
         name: 			    { value: '',  label: 'Name', placeholder: 'openApi-red', icon: 'tag' },
         openApiUrl:     { value: '',  label: 'URL', icon: 'globe', validate: function(v) {
-                          if (!v) return false
-                          const urlWithoutFileExtension = v.substring(0, v.lastIndexOf('.'))
-                          const urlExpression = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi
-                          if (urlWithoutFileExtension.match(new RegExp(urlExpression))) {
-                            return true
+                          if (!v || this?.internalErrors?.readUrl) {
+                            return false
                           }
-                          return false
+                          return true
                         }},
         api:            { value: '',  label: 'API tag' },
         server:         { value: '' },
@@ -20,6 +17,7 @@
         operation:      { value: '',  label: 'Operation' },
         operationData:  { value: {} },
         errorHandling:  { value: 'Standard',label: 'Error handling' },
+        internalErrors: { value: {} },
         parameters:     { value: [],  label: 'Parameters', validate: function(parameters) {
           if (!parameters || !Array.isArray(parameters) || parameters.length === 0 ) {
             return true
@@ -83,29 +81,34 @@
   let operationDescription = ''
   let prevOperation
   if (node.operation) prevOperation = node.operation.toString()
-  node.saveTypedInputAgain = []
+  node.saveTypedInputAgain = [] // will not be saved, is just for workaround
   let requestContentTypes = []
   let responseContentTypes = []
   let oldParameters = {}
   createBackwardCompatible(node)
+  node.internalErrors.readUrl = true
 
-  const setError = (message) => {
+  const setError = (message, inputFieldId = null) => {
     requestContentTypes = []
     responseContentTypes = []
-    if (typeof message !== 'string') message = JSON.stringify(message)
+    if (typeof message !== 'string') {
+      message = JSON.stringify(message)
+    }
     error = message
+    if (inputFieldId) {
+      document.getElementById(inputFieldId).classList.add("input-error")
+    }
     return
   }
 
   let init = true
-  let readSuccessful = false
   const createApi = async () => {
     try {
       error = ''
       openApiSpec = await getOpenApiSpec(node.openApiUrl)
       // if a string was returned it is a node error
       if (typeof openApiSpec === 'string') {
-        setError(openApiSpec)
+        setError(openApiSpec, 'node-input-openApiUrl')
       } else {
         openApiSpec.apiList = openApiSpec.apiList || {}
         openApiSpec.servers = openApiSpec.servers || []
@@ -118,11 +121,11 @@
           prevOperation = ''
           node.operationData = openApiSpec.apiList?.[node.api]?.[node.operation]
         }
-        readSuccessful = true
+        node.internalErrors.readUrl = false
       }
     } catch (e) {
-      readSuccessful = false
-      setError(e)
+      node.internalErrors.readUrl = true
+      setError(e, 'node-input-openApiUrl')
     }
     init = false
   }
@@ -213,8 +216,8 @@
   <Group clazz="paddingBottom">
     <Input bind:node prop="name"/>
     <Row>
-      <Input bind:node prop="openApiUrl" inline on:change={() => readSuccessful = false}/>
-      <Button icon={readSuccessful ? "check-square" : "edit"} clazz={readSuccessful ? "success" : ""} label={readSuccessful ? "ok" : "read"} on:click={createApi} inline disabled={readSuccessful}/>      
+      <Input bind:node prop="openApiUrl" inline on:change={() => node.internalErrors.readUrl = true}/>
+      <Button icon={node.internalErrors.readUrl ?  "edit" : "check-square"} clazz={node.internalErrors.readUrl ? "" :  "success"} label={node.internalErrors.readUrl ? "read" : "ok"} on:click={createApi} inline disabled={!node.internalErrors.readUrl}/>      
     </Row>
     {#if openApiSpec.servers?.length > 1}
       <div style="margin-left: 113px; margin-bottom: 12px;">

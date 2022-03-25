@@ -922,14 +922,25 @@ const getFadeDuration = (fading) => {
   return fadeDuration
 };
 
-const initInternal = (defaultProp, value) => {
+const setInternalValue = (internal, nodeProp, value) => {
+  // value must not be undefined, as that can result in strange behaviour but can have other falsy value types (checkbox = false, number = 0)
+  if (internal.updateNode && typeof nodeProp !== 'undefined') {
+    return nodeProp
+  } else if (typeof value !== 'undefined') {
+    return value
+  } else {
+    return ''
+  }
+};
+
+const initInternal = (nodeProp, value) => {
   const internal = {
     init: true,
     isError: false,
-    updateNode: typeof defaultProp !== 'undefined',
+    updateNode: typeof nodeProp !== 'undefined',
     valueHasChanged: false
   };
-  internal.value = (internal.updateNode && defaultProp) || value || '';
+  internal.value = setInternalValue(internal, nodeProp, value);
   internal.oldValue = internal.value;
   return internal
 };
@@ -938,13 +949,13 @@ const getNewInternal = (nodeProp, value, internal, validateFunction, error) => {
   internal.valueHasChanged = internal.updateNode ? nodeProp !== internal.value : internal.value !== value;
   if (internal.valueHasChanged) {
     if (internal.value === internal.oldValue) {
-      internal.value = (internal.updateNode && nodeProp) || value || ''; // value must not be undefined, as that can result in strange behaviour
+      internal.value = setInternalValue(internal, nodeProp, value);
     }
     internal.oldValue = internal.value;
   }
   if (validateFunction) {
     internal.isError = !validateFunction(internal.value);
-  } else if (typeof error !== 'undefined') {
+  } else {
     internal.isError = error;
   }
   return internal
@@ -3191,42 +3202,42 @@ function add_css$8(target) {
 
 function get_each_context$3(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[46] = list[i];
-	child_ctx[48] = i;
+	child_ctx[48] = list[i];
+	child_ctx[50] = i;
 	return child_ctx;
 }
 
 const get_default_slot_changes = dirty => ({
-	element: dirty[0] & /*elements*/ 4,
-	index: dirty[0] & /*elements*/ 4
+	element: dirty[0] & /*elements*/ 2,
+	index: dirty[0] & /*elements*/ 2
 });
 
 const get_default_slot_context = ctx => ({
-	element: /*element*/ ctx[46],
-	index: /*index*/ ctx[48]
+	element: /*element*/ ctx[48],
+	index: /*index*/ ctx[50]
 });
 
 const get_header_slot_changes$1 = dirty => ({
-	element: dirty[0] & /*elements*/ 4,
-	index: dirty[0] & /*elements*/ 4
+	element: dirty[0] & /*elements*/ 2,
+	index: dirty[0] & /*elements*/ 2
 });
 
 const get_header_slot_context$1 = ctx => ({
 	slot: "headerExtension",
-	element: /*element*/ ctx[46],
-	index: /*index*/ ctx[48]
+	element: /*element*/ ctx[48],
+	index: /*index*/ ctx[50]
 });
 
-// (125:2) {#if label || $$slots.header}
+// (131:2) {#if label || $$slots.header}
 function create_if_block_3$4(ctx) {
 	let componentheader;
 	let current;
 
 	componentheader = new ComponentHeader({
 			props: {
-				label: /*label*/ ctx[7],
-				labelFor: "sir-EditableList-" + /*id*/ ctx[4] + "-content",
-				icon: /*icon*/ ctx[15],
+				label: /*label*/ ctx[6],
+				labelFor: "sir-EditableList-" + /*id*/ ctx[3] + "-content",
+				icon: /*icon*/ ctx[14],
 				$$slots: {
 					headerExtension: [create_headerExtension_slot$1]
 				},
@@ -3244,11 +3255,11 @@ function create_if_block_3$4(ctx) {
 		},
 		p(ctx, dirty) {
 			const componentheader_changes = {};
-			if (dirty[0] & /*label*/ 128) componentheader_changes.label = /*label*/ ctx[7];
-			if (dirty[0] & /*id*/ 16) componentheader_changes.labelFor = "sir-EditableList-" + /*id*/ ctx[4] + "-content";
-			if (dirty[0] & /*icon*/ 32768) componentheader_changes.icon = /*icon*/ ctx[15];
+			if (dirty[0] & /*label*/ 64) componentheader_changes.label = /*label*/ ctx[6];
+			if (dirty[0] & /*id*/ 8) componentheader_changes.labelFor = "sir-EditableList-" + /*id*/ ctx[3] + "-content";
+			if (dirty[0] & /*icon*/ 16384) componentheader_changes.icon = /*icon*/ ctx[14];
 
-			if (dirty[0] & /*elements*/ 4 | dirty[1] & /*$$scope*/ 4096) {
+			if (dirty[0] & /*elements*/ 2 | dirty[1] & /*$$scope*/ 16384) {
 				componentheader_changes.$$scope = { dirty, ctx };
 			}
 
@@ -3269,11 +3280,11 @@ function create_if_block_3$4(ctx) {
 	};
 }
 
-// (127:6) 
+// (133:6) 
 function create_headerExtension_slot$1(ctx) {
 	let current;
-	const header_slot_template = /*#slots*/ ctx[31].header;
-	const header_slot = create_slot(header_slot_template, ctx, /*$$scope*/ ctx[43], get_header_slot_context$1);
+	const header_slot_template = /*#slots*/ ctx[33].header;
+	const header_slot = create_slot(header_slot_template, ctx, /*$$scope*/ ctx[45], get_header_slot_context$1);
 
 	return {
 		c() {
@@ -3288,15 +3299,15 @@ function create_headerExtension_slot$1(ctx) {
 		},
 		p(ctx, dirty) {
 			if (header_slot) {
-				if (header_slot.p && (!current || dirty[0] & /*elements*/ 4 | dirty[1] & /*$$scope*/ 4096)) {
+				if (header_slot.p && (!current || dirty[0] & /*elements*/ 2 | dirty[1] & /*$$scope*/ 16384)) {
 					update_slot_base(
 						header_slot,
 						header_slot_template,
 						ctx,
-						/*$$scope*/ ctx[43],
+						/*$$scope*/ ctx[45],
 						!current
-						? get_all_dirty_from_scope(/*$$scope*/ ctx[43])
-						: get_slot_changes(header_slot_template, /*$$scope*/ ctx[43], dirty, get_header_slot_changes$1),
+						? get_all_dirty_from_scope(/*$$scope*/ ctx[45])
+						: get_slot_changes(header_slot_template, /*$$scope*/ ctx[45], dirty, get_header_slot_changes$1),
 						get_header_slot_context$1
 					);
 				}
@@ -3317,7 +3328,7 @@ function create_headerExtension_slot$1(ctx) {
 	};
 }
 
-// (148:12) {#if sortable}
+// (154:12) {#if sortable}
 function create_if_block_2$4(ctx) {
 	let i;
 	let mounted;
@@ -3327,25 +3338,25 @@ function create_if_block_2$4(ctx) {
 		c() {
 			i = element("i");
 			attr(i, "class", "red-ui-editableList-item-handle fa fa-bars svelte-n4do7h");
-			toggle_class(i, "disabled", /*disabled*/ ctx[1]);
+			toggle_class(i, "disabled", /*disabled*/ ctx[0]);
 		},
 		m(target, anchor) {
 			insert(target, i, anchor);
 
 			if (!mounted) {
 				dispose = [
-					listen(i, "mouseover", /*mouseover_handler*/ ctx[35]),
-					listen(i, "focus", /*focus_handler*/ ctx[36]),
-					listen(i, "mouseout", /*mouseout_handler*/ ctx[37]),
-					listen(i, "blur", /*blur_handler*/ ctx[38])
+					listen(i, "mouseover", /*mouseover_handler*/ ctx[37]),
+					listen(i, "focus", /*focus_handler*/ ctx[38]),
+					listen(i, "mouseout", /*mouseout_handler*/ ctx[39]),
+					listen(i, "blur", /*blur_handler*/ ctx[40])
 				];
 
 				mounted = true;
 			}
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*disabled*/ 2) {
-				toggle_class(i, "disabled", /*disabled*/ ctx[1]);
+			if (dirty[0] & /*disabled*/ 1) {
+				toggle_class(i, "disabled", /*disabled*/ ctx[0]);
 			}
 		},
 		d(detaching) {
@@ -3356,21 +3367,21 @@ function create_if_block_2$4(ctx) {
 	};
 }
 
-// (157:12) {#if removable}
+// (163:12) {#if removable}
 function create_if_block_1$6(ctx) {
 	let div;
 	let button;
 	let current;
 
 	function click_handler() {
-		return /*click_handler*/ ctx[39](/*index*/ ctx[48]);
+		return /*click_handler*/ ctx[41](/*index*/ ctx[50]);
 	}
 
 	button = new Button({
 			props: {
 				small: true,
 				icon: "remove",
-				disabled: /*disabled*/ ctx[1]
+				disabled: /*disabled*/ ctx[0]
 			}
 		});
 
@@ -3390,7 +3401,7 @@ function create_if_block_1$6(ctx) {
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
 			const button_changes = {};
-			if (dirty[0] & /*disabled*/ 2) button_changes.disabled = /*disabled*/ ctx[1];
+			if (dirty[0] & /*disabled*/ 1) button_changes.disabled = /*disabled*/ ctx[0];
 			button.$set(button_changes);
 		},
 		i(local) {
@@ -3409,7 +3420,7 @@ function create_if_block_1$6(ctx) {
 	};
 }
 
-// (133:8) {#each elements as element, index (typeof element === 'object' ? element.id || element : index)}
+// (139:8) {#each elements as element, index (typeof element === 'object' ? element.id || element : index)}
 function create_each_block$3(key_1, ctx) {
 	let li;
 	let t0;
@@ -3422,21 +3433,21 @@ function create_each_block$3(key_1, ctx) {
 	let current;
 	let mounted;
 	let dispose;
-	let if_block0 = /*sortable*/ ctx[12] && create_if_block_2$4(ctx);
-	const default_slot_template = /*#slots*/ ctx[31].default;
-	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[43], get_default_slot_context);
-	let if_block1 = /*removable*/ ctx[11] && create_if_block_1$6(ctx);
+	let if_block0 = /*sortable*/ ctx[11] && create_if_block_2$4(ctx);
+	const default_slot_template = /*#slots*/ ctx[33].default;
+	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[45], get_default_slot_context);
+	let if_block1 = /*removable*/ ctx[10] && create_if_block_1$6(ctx);
 
 	function dragstart_handler(...args) {
-		return /*dragstart_handler*/ ctx[40](/*index*/ ctx[48], ...args);
+		return /*dragstart_handler*/ ctx[42](/*index*/ ctx[50], ...args);
 	}
 
 	function drop_handler(...args) {
-		return /*drop_handler*/ ctx[41](/*index*/ ctx[48], ...args);
+		return /*drop_handler*/ ctx[43](/*index*/ ctx[50], ...args);
 	}
 
 	function dragenter_handler(...args) {
-		return /*dragenter_handler*/ ctx[42](/*index*/ ctx[48], ...args);
+		return /*dragenter_handler*/ ctx[44](/*index*/ ctx[50], ...args);
 	}
 
 	return {
@@ -3452,14 +3463,14 @@ function create_each_block$3(key_1, ctx) {
 			if (if_block1) if_block1.c();
 			t2 = space();
 			attr(div, "class", "red-ui-editableList-item-content svelte-n4do7h");
-			attr(li, "id", li_id_value = /*index*/ ctx[48]);
-			attr(li, "draggable", /*isDraggable*/ ctx[18]);
+			attr(li, "id", li_id_value = /*index*/ ctx[50]);
+			attr(li, "draggable", /*isDraggable*/ ctx[17]);
 			attr(li, "class", "svelte-n4do7h");
-			toggle_class(li, "red-ui-editableList-item-sortable", /*sortable*/ ctx[12]);
-			toggle_class(li, "red-ui-editableList-item-removable", /*removable*/ ctx[11]);
-			toggle_class(li, "dropzoneUnder", /*hovering*/ ctx[16] === /*index*/ ctx[48] && /*hovering*/ ctx[16] < /*draggingIndex*/ ctx[17]);
-			toggle_class(li, "dropzoneAbove", /*hovering*/ ctx[16] === /*index*/ ctx[48] && /*hovering*/ ctx[16] > /*draggingIndex*/ ctx[17]);
-			toggle_class(li, "halfTransparent", /*hovering*/ ctx[16] !== /*index*/ ctx[48] && /*index*/ ctx[48] === /*draggingIndex*/ ctx[17]);
+			toggle_class(li, "red-ui-editableList-item-sortable", /*sortable*/ ctx[11]);
+			toggle_class(li, "red-ui-editableList-item-removable", /*removable*/ ctx[10]);
+			toggle_class(li, "dropzoneUnder", /*hovering*/ ctx[15] === /*index*/ ctx[50] && /*hovering*/ ctx[15] < /*draggingIndex*/ ctx[16]);
+			toggle_class(li, "dropzoneAbove", /*hovering*/ ctx[15] === /*index*/ ctx[50] && /*hovering*/ ctx[15] > /*draggingIndex*/ ctx[16]);
+			toggle_class(li, "halfTransparent", /*hovering*/ ctx[15] !== /*index*/ ctx[50] && /*index*/ ctx[50] === /*draggingIndex*/ ctx[16]);
 			this.first = li;
 		},
 		m(target, anchor) {
@@ -3480,12 +3491,12 @@ function create_each_block$3(key_1, ctx) {
 			if (!mounted) {
 				dispose = [
 					listen(li, "dragstart", stop_propagation(dragstart_handler)),
-					listen(li, "drag", stop_propagation(/*drag_handler*/ ctx[32])),
+					listen(li, "drag", stop_propagation(/*drag_handler*/ ctx[34])),
 					listen(li, "drop", stop_propagation(prevent_default(drop_handler))),
-					listen(li, "dragover", stop_propagation(prevent_default(/*dragover_handler*/ ctx[33]))),
+					listen(li, "dragover", stop_propagation(prevent_default(/*dragover_handler*/ ctx[35]))),
 					listen(li, "dragenter", stop_propagation(prevent_default(dragenter_handler))),
-					listen(li, "dragleave", stop_propagation(/*dragleave_handler*/ ctx[34])),
-					listen(li, "dragend", stop_propagation(/*dragend*/ ctx[24]))
+					listen(li, "dragleave", stop_propagation(/*dragleave_handler*/ ctx[36])),
+					listen(li, "dragend", stop_propagation(/*dragend*/ ctx[25]))
 				];
 
 				mounted = true;
@@ -3494,7 +3505,7 @@ function create_each_block$3(key_1, ctx) {
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
 
-			if (/*sortable*/ ctx[12]) {
+			if (/*sortable*/ ctx[11]) {
 				if (if_block0) {
 					if_block0.p(ctx, dirty);
 				} else {
@@ -3508,25 +3519,25 @@ function create_each_block$3(key_1, ctx) {
 			}
 
 			if (default_slot) {
-				if (default_slot.p && (!current || dirty[0] & /*elements*/ 4 | dirty[1] & /*$$scope*/ 4096)) {
+				if (default_slot.p && (!current || dirty[0] & /*elements*/ 2 | dirty[1] & /*$$scope*/ 16384)) {
 					update_slot_base(
 						default_slot,
 						default_slot_template,
 						ctx,
-						/*$$scope*/ ctx[43],
+						/*$$scope*/ ctx[45],
 						!current
-						? get_all_dirty_from_scope(/*$$scope*/ ctx[43])
-						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[43], dirty, get_default_slot_changes),
+						? get_all_dirty_from_scope(/*$$scope*/ ctx[45])
+						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[45], dirty, get_default_slot_changes),
 						get_default_slot_context
 					);
 				}
 			}
 
-			if (/*removable*/ ctx[11]) {
+			if (/*removable*/ ctx[10]) {
 				if (if_block1) {
 					if_block1.p(ctx, dirty);
 
-					if (dirty[0] & /*removable*/ 2048) {
+					if (dirty[0] & /*removable*/ 1024) {
 						transition_in(if_block1, 1);
 					}
 				} else {
@@ -3545,32 +3556,32 @@ function create_each_block$3(key_1, ctx) {
 				check_outros();
 			}
 
-			if (!current || dirty[0] & /*elements*/ 4 && li_id_value !== (li_id_value = /*index*/ ctx[48])) {
+			if (!current || dirty[0] & /*elements*/ 2 && li_id_value !== (li_id_value = /*index*/ ctx[50])) {
 				attr(li, "id", li_id_value);
 			}
 
-			if (!current || dirty[0] & /*isDraggable*/ 262144) {
-				attr(li, "draggable", /*isDraggable*/ ctx[18]);
+			if (!current || dirty[0] & /*isDraggable*/ 131072) {
+				attr(li, "draggable", /*isDraggable*/ ctx[17]);
 			}
 
-			if (dirty[0] & /*sortable*/ 4096) {
-				toggle_class(li, "red-ui-editableList-item-sortable", /*sortable*/ ctx[12]);
+			if (dirty[0] & /*sortable*/ 2048) {
+				toggle_class(li, "red-ui-editableList-item-sortable", /*sortable*/ ctx[11]);
 			}
 
-			if (dirty[0] & /*removable*/ 2048) {
-				toggle_class(li, "red-ui-editableList-item-removable", /*removable*/ ctx[11]);
+			if (dirty[0] & /*removable*/ 1024) {
+				toggle_class(li, "red-ui-editableList-item-removable", /*removable*/ ctx[10]);
 			}
 
-			if (dirty[0] & /*hovering, elements, draggingIndex*/ 196612) {
-				toggle_class(li, "dropzoneUnder", /*hovering*/ ctx[16] === /*index*/ ctx[48] && /*hovering*/ ctx[16] < /*draggingIndex*/ ctx[17]);
+			if (dirty[0] & /*hovering, elements, draggingIndex*/ 98306) {
+				toggle_class(li, "dropzoneUnder", /*hovering*/ ctx[15] === /*index*/ ctx[50] && /*hovering*/ ctx[15] < /*draggingIndex*/ ctx[16]);
 			}
 
-			if (dirty[0] & /*hovering, elements, draggingIndex*/ 196612) {
-				toggle_class(li, "dropzoneAbove", /*hovering*/ ctx[16] === /*index*/ ctx[48] && /*hovering*/ ctx[16] > /*draggingIndex*/ ctx[17]);
+			if (dirty[0] & /*hovering, elements, draggingIndex*/ 98306) {
+				toggle_class(li, "dropzoneAbove", /*hovering*/ ctx[15] === /*index*/ ctx[50] && /*hovering*/ ctx[15] > /*draggingIndex*/ ctx[16]);
 			}
 
-			if (dirty[0] & /*hovering, elements, draggingIndex*/ 196612) {
-				toggle_class(li, "halfTransparent", /*hovering*/ ctx[16] !== /*index*/ ctx[48] && /*index*/ ctx[48] === /*draggingIndex*/ ctx[17]);
+			if (dirty[0] & /*hovering, elements, draggingIndex*/ 98306) {
+				toggle_class(li, "halfTransparent", /*hovering*/ ctx[15] !== /*index*/ ctx[50] && /*index*/ ctx[50] === /*draggingIndex*/ ctx[16]);
 			}
 		},
 		r() {
@@ -3606,7 +3617,7 @@ function create_each_block$3(key_1, ctx) {
 	};
 }
 
-// (166:4) {#if addButton}
+// (172:4) {#if _addButton}
 function create_if_block$8(ctx) {
 	let button;
 	let current;
@@ -3615,13 +3626,13 @@ function create_if_block$8(ctx) {
 			props: {
 				style: "margin-top: 6px;",
 				icon: "plus",
-				disabled: /*disabled*/ ctx[1],
-				label: " " + RED._("editableList.add"),
+				disabled: /*disabled*/ ctx[0],
+				label: /*addButtonLabel*/ ctx[19],
 				small: true
 			}
 		});
 
-	button.$on("click", /*addHandler*/ ctx[25]);
+	button.$on("click", /*addHandler*/ ctx[26]);
 
 	return {
 		c() {
@@ -3633,7 +3644,7 @@ function create_if_block$8(ctx) {
 		},
 		p(ctx, dirty) {
 			const button_changes = {};
-			if (dirty[0] & /*disabled*/ 2) button_changes.disabled = /*disabled*/ ctx[1];
+			if (dirty[0] & /*disabled*/ 1) button_changes.disabled = /*disabled*/ ctx[0];
 			button.$set(button_changes);
 		},
 		i(local) {
@@ -3651,7 +3662,7 @@ function create_if_block$8(ctx) {
 	};
 }
 
-// (124:0) <Row id="sir-EditableList-{id}" clazz="{clazz} sir-EditableList" {inline} {maximize} fading={fadeDuration} {style}>
+// (130:0) <Row id="sir-EditableList-{id}" clazz="{clazz} sir-EditableList" {inline} {maximize} fading={fadeDuration} {style}>
 function create_default_slot$6(ctx) {
 	let t0;
 	let div1;
@@ -3663,12 +3674,12 @@ function create_default_slot$6(ctx) {
 	let div0_style_value;
 	let t1;
 	let current;
-	let if_block0 = (/*label*/ ctx[7] || /*$$slots*/ ctx[27].header) && create_if_block_3$4(ctx);
-	let each_value = /*elements*/ ctx[2];
+	let if_block0 = (/*label*/ ctx[6] || /*$$slots*/ ctx[28].header) && create_if_block_3$4(ctx);
+	let each_value = /*elements*/ ctx[1];
 
-	const get_key = ctx => typeof /*element*/ ctx[46] === 'object'
-	? /*element*/ ctx[46].id || /*element*/ ctx[46]
-	: /*index*/ ctx[48];
+	const get_key = ctx => typeof /*element*/ ctx[48] === 'object'
+	? /*element*/ ctx[48].id || /*element*/ ctx[48]
+	: /*index*/ ctx[50];
 
 	for (let i = 0; i < each_value.length; i += 1) {
 		let child_ctx = get_each_context$3(ctx, each_value, i);
@@ -3676,7 +3687,7 @@ function create_default_slot$6(ctx) {
 		each_1_lookup.set(key, each_blocks[i] = create_each_block$3(key, child_ctx));
 	}
 
-	let if_block1 = /*addButton*/ ctx[0] && create_if_block$8(ctx);
+	let if_block1 = /*_addButton*/ ctx[18] && create_if_block$8(ctx);
 
 	return {
 		c() {
@@ -3692,14 +3703,14 @@ function create_default_slot$6(ctx) {
 
 			t1 = space();
 			if (if_block1) if_block1.c();
-			attr(ol, "id", /*nodeInputId*/ ctx[19]);
+			attr(ol, "id", /*nodeInputId*/ ctx[20]);
 			attr(ol, "class", "red-ui-editableList-list sir-EditableList-list");
-			attr(ol, "style", /*style*/ ctx[13]);
-			toggle_class(ol, "ui-sortable", /*sortable*/ ctx[12]);
-			attr(div0, "id", div0_id_value = "sir-EditableList-" + /*id*/ ctx[4] + "-content");
+			attr(ol, "style", /*style*/ ctx[12]);
+			toggle_class(ol, "ui-sortable", /*sortable*/ ctx[11]);
+			attr(div0, "id", div0_id_value = "sir-EditableList-" + /*id*/ ctx[3] + "-content");
 			attr(div0, "class", "red-ui-editableList-border red-ui-editableList-container svelte-n4do7h");
-			attr(div0, "style", div0_style_value = `${/*style*/ ctx[13]} min-height: ${/*minHeight*/ ctx[10]}; height: ${/*height*/ ctx[3]}; max-height: ${/*maxHeight*/ ctx[8]}`);
-			toggle_class(div0, "indented", /*indented*/ ctx[5]);
+			attr(div0, "style", div0_style_value = `${/*style*/ ctx[12]} min-height: ${/*minHeight*/ ctx[9]}; height: ${/*height*/ ctx[2]}; max-height: ${/*maxHeight*/ ctx[7]}`);
+			toggle_class(div0, "indented", /*indented*/ ctx[4]);
 			attr(div1, "class", "red-ui-editableList");
 		},
 		m(target, anchor) {
@@ -3718,11 +3729,11 @@ function create_default_slot$6(ctx) {
 			current = true;
 		},
 		p(ctx, dirty) {
-			if (/*label*/ ctx[7] || /*$$slots*/ ctx[27].header) {
+			if (/*label*/ ctx[6] || /*$$slots*/ ctx[28].header) {
 				if (if_block0) {
 					if_block0.p(ctx, dirty);
 
-					if (dirty[0] & /*label, $$slots*/ 134217856) {
+					if (dirty[0] & /*label, $$slots*/ 268435520) {
 						transition_in(if_block0, 1);
 					}
 				} else {
@@ -3741,8 +3752,8 @@ function create_default_slot$6(ctx) {
 				check_outros();
 			}
 
-			if (dirty[0] & /*elements, isDraggable, sortable, removable, hovering, draggingIndex, dragstart, drop, dragenter, dragend, disabled, removeHandler*/ 99031046 | dirty[1] & /*$$scope*/ 4096) {
-				each_value = /*elements*/ ctx[2];
+			if (dirty[0] & /*elements, isDraggable, sortable, removable, hovering, draggingIndex, dragstart, drop, dragenter, dragend, disabled, removeHandler*/ 197364739 | dirty[1] & /*$$scope*/ 16384) {
+				each_value = /*elements*/ ctx[1];
 				group_outros();
 				for (let i = 0; i < each_blocks.length; i += 1) each_blocks[i].r();
 				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ol, fix_and_outro_and_destroy_block, create_each_block$3, null, get_each_context$3);
@@ -3750,48 +3761,27 @@ function create_default_slot$6(ctx) {
 				check_outros();
 			}
 
-			if (!current || dirty[0] & /*style*/ 8192) {
-				attr(ol, "style", /*style*/ ctx[13]);
+			if (!current || dirty[0] & /*style*/ 4096) {
+				attr(ol, "style", /*style*/ ctx[12]);
 			}
 
-			if (dirty[0] & /*sortable*/ 4096) {
-				toggle_class(ol, "ui-sortable", /*sortable*/ ctx[12]);
+			if (dirty[0] & /*sortable*/ 2048) {
+				toggle_class(ol, "ui-sortable", /*sortable*/ ctx[11]);
 			}
 
-			if (!current || dirty[0] & /*id*/ 16 && div0_id_value !== (div0_id_value = "sir-EditableList-" + /*id*/ ctx[4] + "-content")) {
+			if (!current || dirty[0] & /*id*/ 8 && div0_id_value !== (div0_id_value = "sir-EditableList-" + /*id*/ ctx[3] + "-content")) {
 				attr(div0, "id", div0_id_value);
 			}
 
-			if (!current || dirty[0] & /*style, minHeight, height, maxHeight*/ 9480 && div0_style_value !== (div0_style_value = `${/*style*/ ctx[13]} min-height: ${/*minHeight*/ ctx[10]}; height: ${/*height*/ ctx[3]}; max-height: ${/*maxHeight*/ ctx[8]}`)) {
+			if (!current || dirty[0] & /*style, minHeight, height, maxHeight*/ 4740 && div0_style_value !== (div0_style_value = `${/*style*/ ctx[12]} min-height: ${/*minHeight*/ ctx[9]}; height: ${/*height*/ ctx[2]}; max-height: ${/*maxHeight*/ ctx[7]}`)) {
 				attr(div0, "style", div0_style_value);
 			}
 
-			if (dirty[0] & /*indented*/ 32) {
-				toggle_class(div0, "indented", /*indented*/ ctx[5]);
+			if (dirty[0] & /*indented*/ 16) {
+				toggle_class(div0, "indented", /*indented*/ ctx[4]);
 			}
 
-			if (/*addButton*/ ctx[0]) {
-				if (if_block1) {
-					if_block1.p(ctx, dirty);
-
-					if (dirty[0] & /*addButton*/ 1) {
-						transition_in(if_block1, 1);
-					}
-				} else {
-					if_block1 = create_if_block$8(ctx);
-					if_block1.c();
-					transition_in(if_block1, 1);
-					if_block1.m(div1, null);
-				}
-			} else if (if_block1) {
-				group_outros();
-
-				transition_out(if_block1, 1, 1, () => {
-					if_block1 = null;
-				});
-
-				check_outros();
-			}
+			if (/*_addButton*/ ctx[18]) if_block1.p(ctx, dirty);
 		},
 		i(local) {
 			if (current) return;
@@ -3834,12 +3824,12 @@ function create_fragment$9(ctx) {
 
 	row = new Row({
 			props: {
-				id: "sir-EditableList-" + /*id*/ ctx[4],
-				clazz: "" + (/*clazz*/ ctx[14] + " sir-EditableList"),
-				inline: /*inline*/ ctx[6],
-				maximize: /*maximize*/ ctx[9],
-				fading: /*fadeDuration*/ ctx[20],
-				style: /*style*/ ctx[13],
+				id: "sir-EditableList-" + /*id*/ ctx[3],
+				clazz: "" + (/*clazz*/ ctx[13] + " sir-EditableList"),
+				inline: /*inline*/ ctx[5],
+				maximize: /*maximize*/ ctx[8],
+				fading: /*fadeDuration*/ ctx[21],
+				style: /*style*/ ctx[12],
 				$$slots: { default: [create_default_slot$6] },
 				$$scope: { ctx }
 			}
@@ -3855,13 +3845,13 @@ function create_fragment$9(ctx) {
 		},
 		p(ctx, dirty) {
 			const row_changes = {};
-			if (dirty[0] & /*id*/ 16) row_changes.id = "sir-EditableList-" + /*id*/ ctx[4];
-			if (dirty[0] & /*clazz*/ 16384) row_changes.clazz = "" + (/*clazz*/ ctx[14] + " sir-EditableList");
-			if (dirty[0] & /*inline*/ 64) row_changes.inline = /*inline*/ ctx[6];
-			if (dirty[0] & /*maximize*/ 512) row_changes.maximize = /*maximize*/ ctx[9];
-			if (dirty[0] & /*style*/ 8192) row_changes.style = /*style*/ ctx[13];
+			if (dirty[0] & /*id*/ 8) row_changes.id = "sir-EditableList-" + /*id*/ ctx[3];
+			if (dirty[0] & /*clazz*/ 8192) row_changes.clazz = "" + (/*clazz*/ ctx[13] + " sir-EditableList");
+			if (dirty[0] & /*inline*/ 32) row_changes.inline = /*inline*/ ctx[5];
+			if (dirty[0] & /*maximize*/ 256) row_changes.maximize = /*maximize*/ ctx[8];
+			if (dirty[0] & /*style*/ 4096) row_changes.style = /*style*/ ctx[12];
 
-			if (dirty[0] & /*disabled, addButton, id, style, minHeight, height, maxHeight, indented, sortable, elements, isDraggable, removable, hovering, draggingIndex, label, icon, $$slots*/ 134725055 | dirty[1] & /*$$scope*/ 4096) {
+			if (dirty[0] & /*disabled, id, style, minHeight, height, maxHeight, indented, sortable, elements, isDraggable, removable, hovering, draggingIndex, label, icon, $$slots*/ 268689119 | dirty[1] & /*$$scope*/ 16384) {
 				row_changes.$$scope = { dirty, ctx };
 			}
 
@@ -3887,15 +3877,26 @@ function instance$9($$self, $$props, $$invalidate) {
 	const $$slots = compute_slots(slots);
 	let { addButton = false, clazz = "", disabled = false, elements, fading = true, height = 'auto', i18n, icon, id, indented = false, inline = false, label = '', maxHeight = 300, maximize = false, minHeight = 100, node, removable = false, sortable = false, style = '' } = $$props;
 	id = id || getId();
-	addButton = getBooleanFrom(addButton);
+	const _addButton = getBooleanFrom(!!addButton);
 	sortable = getBooleanFrom(sortable);
 	removable = getBooleanFrom(removable);
 	disabled = getBooleanFrom(disabled);
 	maximize = getBooleanFrom(maximize);
 	inline = getBooleanFrom(inline);
 	indented = getBooleanFrom(indented);
-	if (style && !style.endsWith(";")) style = style + ";";
-	if (label) label = i18nTranslate(RED, node, i18n, label);
+
+	const addButtonLabel = typeof addButton === 'string'
+	? addButton
+	: RED._("editableList.add");
+
+	if (style && !style.endsWith(";")) {
+		style = style + ";";
+	}
+
+	if (label) {
+		label = i18nTranslate(RED, node, i18n, label);
+	}
+
 	const nodeInputId = "node-input-" + id + "-container";
 	const fadeDuration = getFadeDuration(fading);
 
@@ -3927,15 +3928,16 @@ function instance$9($$self, $$props, $$invalidate) {
 				newTracklist.splice(start + 1, 1);
 			}
 
-			$$invalidate(2, elements = newTracklist);
-			$$invalidate(16, hovering = null);
-			$$invalidate(17, draggingIndex = null);
+			$$invalidate(1, elements = newTracklist);
+			$$invalidate(15, hovering = null);
+			$$invalidate(16, draggingIndex = null);
+			dispatch('changed', { elements });
 		}
 	};
 
 	const dragstart = (e, i) => {
 		dropzone = event.target.closest('ol').id;
-		$$invalidate(17, draggingIndex = i);
+		$$invalidate(16, draggingIndex = i);
 		e.dataTransfer.effectAllowed = 'move';
 		e.dataTransfer.dropEffect = 'move';
 		const start = i;
@@ -3944,13 +3946,13 @@ function instance$9($$self, $$props, $$invalidate) {
 
 	const dragenter = (event, i) => {
 		if (dropzone) {
-			$$invalidate(16, hovering = i);
+			$$invalidate(15, hovering = i);
 		}
 	};
 
 	const dragend = () => {
 		dropzone = false;
-		$$invalidate(16, hovering = null);
+		$$invalidate(15, hovering = null);
 		index = null;
 	};
 
@@ -3959,7 +3961,7 @@ function instance$9($$self, $$props, $$invalidate) {
 
 	const removeHandler = index => {
 		const removed = elements[index];
-		$$invalidate(2, elements = [...elements.slice(0, index), ...elements.slice(index + 1)]);
+		$$invalidate(1, elements = [...elements.slice(0, index), ...elements.slice(index + 1)]);
 		dispatch('remove', { removed });
 	};
 
@@ -3975,10 +3977,10 @@ function instance$9($$self, $$props, $$invalidate) {
 		bubble.call(this, $$self, event);
 	}
 
-	const mouseover_handler = () => $$invalidate(18, isDraggable = true);
-	const focus_handler = () => $$invalidate(18, isDraggable = true);
-	const mouseout_handler = () => $$invalidate(18, isDraggable = false);
-	const blur_handler = () => $$invalidate(18, isDraggable = false);
+	const mouseover_handler = () => $$invalidate(17, isDraggable = true);
+	const focus_handler = () => $$invalidate(17, isDraggable = true);
+	const mouseout_handler = () => $$invalidate(17, isDraggable = false);
+	const blur_handler = () => $$invalidate(17, isDraggable = false);
 	const click_handler = index => removeHandler(index);
 	const dragstart_handler = (index, e) => dragstart(e, index);
 	const drop_handler = (index, e) => drop(e, index);
@@ -3988,30 +3990,29 @@ function instance$9($$self, $$props, $$invalidate) {
 	};
 
 	$$self.$$set = $$props => {
-		if ('addButton' in $$props) $$invalidate(0, addButton = $$props.addButton);
-		if ('clazz' in $$props) $$invalidate(14, clazz = $$props.clazz);
-		if ('disabled' in $$props) $$invalidate(1, disabled = $$props.disabled);
-		if ('elements' in $$props) $$invalidate(2, elements = $$props.elements);
-		if ('fading' in $$props) $$invalidate(28, fading = $$props.fading);
-		if ('height' in $$props) $$invalidate(3, height = $$props.height);
-		if ('i18n' in $$props) $$invalidate(29, i18n = $$props.i18n);
-		if ('icon' in $$props) $$invalidate(15, icon = $$props.icon);
-		if ('id' in $$props) $$invalidate(4, id = $$props.id);
-		if ('indented' in $$props) $$invalidate(5, indented = $$props.indented);
-		if ('inline' in $$props) $$invalidate(6, inline = $$props.inline);
-		if ('label' in $$props) $$invalidate(7, label = $$props.label);
-		if ('maxHeight' in $$props) $$invalidate(8, maxHeight = $$props.maxHeight);
-		if ('maximize' in $$props) $$invalidate(9, maximize = $$props.maximize);
-		if ('minHeight' in $$props) $$invalidate(10, minHeight = $$props.minHeight);
-		if ('node' in $$props) $$invalidate(30, node = $$props.node);
-		if ('removable' in $$props) $$invalidate(11, removable = $$props.removable);
-		if ('sortable' in $$props) $$invalidate(12, sortable = $$props.sortable);
-		if ('style' in $$props) $$invalidate(13, style = $$props.style);
-		if ('$$scope' in $$props) $$invalidate(43, $$scope = $$props.$$scope);
+		if ('addButton' in $$props) $$invalidate(29, addButton = $$props.addButton);
+		if ('clazz' in $$props) $$invalidate(13, clazz = $$props.clazz);
+		if ('disabled' in $$props) $$invalidate(0, disabled = $$props.disabled);
+		if ('elements' in $$props) $$invalidate(1, elements = $$props.elements);
+		if ('fading' in $$props) $$invalidate(30, fading = $$props.fading);
+		if ('height' in $$props) $$invalidate(2, height = $$props.height);
+		if ('i18n' in $$props) $$invalidate(31, i18n = $$props.i18n);
+		if ('icon' in $$props) $$invalidate(14, icon = $$props.icon);
+		if ('id' in $$props) $$invalidate(3, id = $$props.id);
+		if ('indented' in $$props) $$invalidate(4, indented = $$props.indented);
+		if ('inline' in $$props) $$invalidate(5, inline = $$props.inline);
+		if ('label' in $$props) $$invalidate(6, label = $$props.label);
+		if ('maxHeight' in $$props) $$invalidate(7, maxHeight = $$props.maxHeight);
+		if ('maximize' in $$props) $$invalidate(8, maximize = $$props.maximize);
+		if ('minHeight' in $$props) $$invalidate(9, minHeight = $$props.minHeight);
+		if ('node' in $$props) $$invalidate(32, node = $$props.node);
+		if ('removable' in $$props) $$invalidate(10, removable = $$props.removable);
+		if ('sortable' in $$props) $$invalidate(11, sortable = $$props.sortable);
+		if ('style' in $$props) $$invalidate(12, style = $$props.style);
+		if ('$$scope' in $$props) $$invalidate(45, $$scope = $$props.$$scope);
 	};
 
 	return [
-		addButton,
 		disabled,
 		elements,
 		height,
@@ -4030,6 +4031,8 @@ function instance$9($$self, $$props, $$invalidate) {
 		hovering,
 		draggingIndex,
 		isDraggable,
+		_addButton,
+		addButtonLabel,
 		nodeInputId,
 		fadeDuration,
 		drop,
@@ -4039,6 +4042,7 @@ function instance$9($$self, $$props, $$invalidate) {
 		addHandler,
 		removeHandler,
 		$$slots,
+		addButton,
 		fading,
 		i18n,
 		node,
@@ -4069,25 +4073,25 @@ class EditableList extends SvelteComponent {
 			create_fragment$9,
 			safe_not_equal,
 			{
-				addButton: 0,
-				clazz: 14,
-				disabled: 1,
-				elements: 2,
-				fading: 28,
-				height: 3,
-				i18n: 29,
-				icon: 15,
-				id: 4,
-				indented: 5,
-				inline: 6,
-				label: 7,
-				maxHeight: 8,
-				maximize: 9,
-				minHeight: 10,
-				node: 30,
-				removable: 11,
-				sortable: 12,
-				style: 13
+				addButton: 29,
+				clazz: 13,
+				disabled: 0,
+				elements: 1,
+				fading: 30,
+				height: 2,
+				i18n: 31,
+				icon: 14,
+				id: 3,
+				indented: 4,
+				inline: 5,
+				label: 6,
+				maxHeight: 7,
+				maximize: 8,
+				minHeight: 9,
+				node: 32,
+				removable: 10,
+				sortable: 11,
+				style: 12
 			},
 			add_css$8,
 			[-1, -1]
@@ -4434,7 +4438,7 @@ function add_css$6(target) {
 	append_styles(target, "svelte-1ux37oi", ".maximize.svelte-1ux37oi{width:100%}");
 }
 
-// (97:0) {:else}
+// (98:0) {:else}
 function create_else_block_1$1(ctx) {
 	let span;
 
@@ -4454,7 +4458,7 @@ function create_else_block_1$1(ctx) {
 	};
 }
 
-// (65:0) {#if !internal.updateNode || prop}
+// (66:0) {#if !internal.updateNode || prop}
 function create_if_block$6(ctx) {
 	let t;
 	let if_block1_anchor;
@@ -4531,7 +4535,7 @@ function create_if_block$6(ctx) {
 	};
 }
 
-// (70:21) 
+// (71:21) 
 function create_if_block_12$1(ctx) {
 	let label_1;
 
@@ -4550,7 +4554,7 @@ function create_if_block_12$1(ctx) {
 	};
 }
 
-// (66:2) {#if (type !== 'checkbox' && label) || (type === 'checkbox' && label && labelBeforeCheckbox)}
+// (67:2) {#if (type !== 'checkbox' && label) || (type === 'checkbox' && label && labelBeforeCheckbox)}
 function create_if_block_10$1(ctx) {
 	let label_1;
 	let t0;
@@ -4607,7 +4611,7 @@ function create_if_block_10$1(ctx) {
 	};
 }
 
-// (68:6) {#if icon}
+// (69:6) {#if icon}
 function create_if_block_11$1(ctx) {
 	let i;
 	let i_class_value;
@@ -4631,7 +4635,7 @@ function create_if_block_11$1(ctx) {
 	};
 }
 
-// (94:2) {:else}
+// (95:2) {:else}
 function create_else_block$5(ctx) {
 	let span;
 	let t0;
@@ -4660,7 +4664,7 @@ function create_else_block$5(ctx) {
 	};
 }
 
-// (87:32) 
+// (88:32) 
 function create_if_block_7$1(ctx) {
 	let div;
 	let input;
@@ -4734,7 +4738,7 @@ function create_if_block_7$1(ctx) {
 	};
 }
 
-// (84:29) 
+// (85:29) 
 function create_if_block_6$1(ctx) {
 	let input0;
 	let t;
@@ -4821,7 +4825,7 @@ function create_if_block_6$1(ctx) {
 	};
 }
 
-// (82:27) 
+// (83:27) 
 function create_if_block_5$3(ctx) {
 	let input;
 	let mounted;
@@ -4882,7 +4886,7 @@ function create_if_block_5$3(ctx) {
 	};
 }
 
-// (80:29) 
+// (81:29) 
 function create_if_block_4$3(ctx) {
 	let input;
 	let mounted;
@@ -4943,7 +4947,7 @@ function create_if_block_4$3(ctx) {
 	};
 }
 
-// (78:32) 
+// (79:32) 
 function create_if_block_3$3(ctx) {
 	let input;
 	let mounted;
@@ -5004,7 +5008,7 @@ function create_if_block_3$3(ctx) {
 	};
 }
 
-// (76:30) 
+// (77:30) 
 function create_if_block_2$3(ctx) {
 	let input;
 	let mounted;
@@ -5065,7 +5069,7 @@ function create_if_block_2$3(ctx) {
 	};
 }
 
-// (74:2) {#if type === 'text'}
+// (75:2) {#if type === 'text'}
 function create_if_block_1$5(ctx) {
 	let input;
 	let mounted;
@@ -5126,7 +5130,7 @@ function create_if_block_1$5(ctx) {
 	};
 }
 
-// (90:8) {#if label && !labelBeforeCheckbox}
+// (91:8) {#if label && !labelBeforeCheckbox}
 function create_if_block_8$1(ctx) {
 	let label_1;
 	let t0;
@@ -5185,7 +5189,7 @@ function create_if_block_8$1(ctx) {
 	};
 }
 
-// (91:93) {#if icon}
+// (92:93) {#if icon}
 function create_if_block_9$1(ctx) {
 	let i;
 	let i_class_value;
@@ -5252,11 +5256,12 @@ function create_fragment$7(ctx) {
 }
 
 function instance$7($$self, $$props, $$invalidate) {
-	let { credentials = false, disabled = false, error, i18n, icon, id, indented = false, label, labelBeforeCheckbox = false, maximize, node, placeholder, prop, type, value } = $$props;
+	let { credentials = false, disabled = false, error = false, i18n, icon, id, indented = false, label, labelBeforeCheckbox = false, maximize, node, placeholder, prop, type, value } = $$props;
 	id = id || getId(prop);
 	credentials = getBooleanFrom(credentials);
 	indented = getBooleanFrom(indented);
 	disabled = getBooleanFrom(disabled);
+	error = getBooleanFrom(error);
 	labelBeforeCheckbox = getBooleanFrom(labelBeforeCheckbox);
 	const inputFieldId = 'node-input-' + id;
 	let defaults = {};
@@ -5275,7 +5280,9 @@ function instance$7($$self, $$props, $$invalidate) {
 	placeholder = placeholder || defaults[prop]?.placeholder || '';
 
 	if (!type) {
-		let testValue = defaults[prop] ? defaults[prop].value : internal.value;
+		let testValue = typeof defaults[prop] !== 'undefined'
+		? defaults[prop].value
+		: internal.value;
 
 		if (typeof testValue === 'number') {
 			type = 'number';
@@ -5394,71 +5401,71 @@ function instance$7($$self, $$props, $$invalidate) {
 
 	function input_input_handler() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input_input_handler_1() {
 		internal.value = to_number(this.value);
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input_input_handler_2() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input_input_handler_3() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input_input_handler_4() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input0_input_handler() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input1_input_handler() {
 		internal.value = this.value;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	function input_change_handler() {
 		internal.value = this.checked;
-		(((((($$invalidate(9, internal), $$invalidate(12, node)), $$invalidate(8, prop)), $$invalidate(13, value)), $$invalidate(17, defaults)), $$invalidate(15, error)), $$invalidate(11, id));
+		(((((($$invalidate(9, internal), $$invalidate(13, node)), $$invalidate(8, prop)), $$invalidate(14, value)), $$invalidate(17, defaults)), $$invalidate(11, error)), $$invalidate(12, id));
 	}
 
 	$$self.$$set = $$props => {
-		if ('credentials' in $$props) $$invalidate(14, credentials = $$props.credentials);
+		if ('credentials' in $$props) $$invalidate(15, credentials = $$props.credentials);
 		if ('disabled' in $$props) $$invalidate(2, disabled = $$props.disabled);
-		if ('error' in $$props) $$invalidate(15, error = $$props.error);
+		if ('error' in $$props) $$invalidate(11, error = $$props.error);
 		if ('i18n' in $$props) $$invalidate(16, i18n = $$props.i18n);
 		if ('icon' in $$props) $$invalidate(3, icon = $$props.icon);
-		if ('id' in $$props) $$invalidate(11, id = $$props.id);
+		if ('id' in $$props) $$invalidate(12, id = $$props.id);
 		if ('indented' in $$props) $$invalidate(4, indented = $$props.indented);
 		if ('label' in $$props) $$invalidate(0, label = $$props.label);
 		if ('labelBeforeCheckbox' in $$props) $$invalidate(5, labelBeforeCheckbox = $$props.labelBeforeCheckbox);
 		if ('maximize' in $$props) $$invalidate(7, maximize = $$props.maximize);
-		if ('node' in $$props) $$invalidate(12, node = $$props.node);
+		if ('node' in $$props) $$invalidate(13, node = $$props.node);
 		if ('placeholder' in $$props) $$invalidate(1, placeholder = $$props.placeholder);
 		if ('prop' in $$props) $$invalidate(8, prop = $$props.prop);
 		if ('type' in $$props) $$invalidate(6, type = $$props.type);
-		if ('value' in $$props) $$invalidate(13, value = $$props.value);
+		if ('value' in $$props) $$invalidate(14, value = $$props.value);
 	};
 
 	$$self.$$.update = () => {
-		if ($$self.$$.dirty[0] & /*node, prop, value, internal, defaults, error, id*/ 178944) {
+		if ($$self.$$.dirty[0] & /*node, prop, value, internal, defaults, error, id*/ 162560) {
 			{
 				$$invalidate(9, internal = getNewInternal(node?.[prop], value, internal, defaults?.[prop]?.validate, error));
 
 				if (internal.updateNode) {
-					$$invalidate(12, node[prop] = internal.value, node);
+					$$invalidate(13, node[prop] = internal.value, node);
 				} else {
-					$$invalidate(13, value = internal.value);
+					$$invalidate(14, value = internal.value);
 				}
 
 				if (!internal.init && internal.valueHasChanged) {
@@ -5469,7 +5476,7 @@ function instance$7($$self, $$props, $$invalidate) {
 			}
 		}
 
-		if ($$self.$$.dirty[0] & /*label, node, i18n*/ 69633) {
+		if ($$self.$$.dirty[0] & /*label, node, i18n*/ 73729) {
 			{
 				if (label) {
 					$$invalidate(0, label = i18nTranslate(RED, node, i18n, label));
@@ -5477,7 +5484,7 @@ function instance$7($$self, $$props, $$invalidate) {
 			}
 		}
 
-		if ($$self.$$.dirty[0] & /*placeholder, node, i18n*/ 69634) {
+		if ($$self.$$.dirty[0] & /*placeholder, node, i18n*/ 73730) {
 			{
 				if (placeholder) {
 					$$invalidate(1, placeholder = i18nTranslate(RED, node, i18n, placeholder));
@@ -5498,11 +5505,11 @@ function instance$7($$self, $$props, $$invalidate) {
 		prop,
 		internal,
 		inputFieldId,
+		error,
 		id,
 		node,
 		value,
 		credentials,
-		error,
 		i18n,
 		defaults,
 		mouseenter_handler_1,
@@ -5553,21 +5560,21 @@ class PlainInput extends SvelteComponent {
 			create_fragment$7,
 			safe_not_equal,
 			{
-				credentials: 14,
+				credentials: 15,
 				disabled: 2,
-				error: 15,
+				error: 11,
 				i18n: 16,
 				icon: 3,
-				id: 11,
+				id: 12,
 				indented: 4,
 				label: 0,
 				labelBeforeCheckbox: 5,
 				maximize: 7,
-				node: 12,
+				node: 13,
 				placeholder: 1,
 				prop: 8,
 				type: 6,
-				value: 13
+				value: 14
 			},
 			add_css$6,
 			[-1, -1]
@@ -6790,7 +6797,7 @@ function add_css$3(target) {
 	append_styles(target, "svelte-1m0uqs8", ".disabled.svelte-1m0uqs8{pointer-events:none}.maximize.svelte-1m0uqs8{width:100%}.sir-Input-Container select, .sir-Select select{padding-left:3px}.sir-Select{display:inline-flex;width:100%;align-items:center}");
 }
 
-// (53:2) {#if label}
+// (54:2) {#if label}
 function create_if_block$3(ctx) {
 	let label_1;
 	let t0;
@@ -6839,7 +6846,7 @@ function create_if_block$3(ctx) {
 	};
 }
 
-// (54:33) {#if icon}
+// (55:33) {#if icon}
 function create_if_block_1$3(ctx) {
 	let i;
 	let i_class_value;
@@ -6863,7 +6870,7 @@ function create_if_block_1$3(ctx) {
 	};
 }
 
-// (52:0) <Row id="sir-Select-{id}-Container" clazz="{clazz} sir-Select" {inline} {style} {fading}>
+// (53:0) <Row id="sir-Select-{id}-Container" clazz="{clazz} sir-Select" {inline} {style} {fading}>
 function create_default_slot$3(ctx) {
 	let t;
 	let select;
@@ -7040,11 +7047,12 @@ function create_fragment$4(ctx) {
 
 function instance$4($$self, $$props, $$invalidate) {
 	let { $$slots: slots = {}, $$scope } = $$props;
-	let { clazz = '', disabled = false, error, fading = true, i18n, icon, id, inline = false, label, maximize = true, node, prop, style = "", value } = $$props;
+	let { clazz = '', disabled = false, error = false, fading = true, i18n, icon, id, inline = false, label, maximize = true, node, prop, style = "", value } = $$props;
 	id = id || getId(prop);
 	inline = getBooleanFrom(inline);
 	disabled = getBooleanFrom(disabled);
 	maximize = getBooleanFrom(maximize);
+	error = getBooleanFrom(error);
 	let defaults = node ? node._def.defaults : {};
 
 	if (label !== false) {
@@ -7064,13 +7072,13 @@ function instance$4($$self, $$props, $$invalidate) {
 
 	function select_change_handler() {
 		internal.value = select_value(this);
-		(((((($$invalidate(11, internal), $$invalidate(2, node)), $$invalidate(9, prop)), $$invalidate(13, value)), $$invalidate(12, defaults)), $$invalidate(14, error)), $$invalidate(0, id));
+		(((((($$invalidate(11, internal), $$invalidate(2, node)), $$invalidate(9, prop)), $$invalidate(14, value)), $$invalidate(12, defaults)), $$invalidate(13, error)), $$invalidate(0, id));
 	}
 
 	$$self.$$set = $$props => {
 		if ('clazz' in $$props) $$invalidate(6, clazz = $$props.clazz);
 		if ('disabled' in $$props) $$invalidate(3, disabled = $$props.disabled);
-		if ('error' in $$props) $$invalidate(14, error = $$props.error);
+		if ('error' in $$props) $$invalidate(13, error = $$props.error);
 		if ('fading' in $$props) $$invalidate(7, fading = $$props.fading);
 		if ('i18n' in $$props) $$invalidate(15, i18n = $$props.i18n);
 		if ('icon' in $$props) $$invalidate(8, icon = $$props.icon);
@@ -7081,7 +7089,7 @@ function instance$4($$self, $$props, $$invalidate) {
 		if ('node' in $$props) $$invalidate(2, node = $$props.node);
 		if ('prop' in $$props) $$invalidate(9, prop = $$props.prop);
 		if ('style' in $$props) $$invalidate(10, style = $$props.style);
-		if ('value' in $$props) $$invalidate(13, value = $$props.value);
+		if ('value' in $$props) $$invalidate(14, value = $$props.value);
 		if ('$$scope' in $$props) $$invalidate(20, $$scope = $$props.$$scope);
 	};
 
@@ -7093,7 +7101,7 @@ function instance$4($$self, $$props, $$invalidate) {
 				if (internal.updateNode) {
 					$$invalidate(2, node[prop] = internal.value, node);
 				} else {
-					$$invalidate(13, value = internal.value);
+					$$invalidate(14, value = internal.value);
 				}
 
 				if (!internal.init && internal.valueHasChanged) {
@@ -7127,8 +7135,8 @@ function instance$4($$self, $$props, $$invalidate) {
 		style,
 		internal,
 		defaults,
-		value,
 		error,
+		value,
 		i18n,
 		slots,
 		mouseenter_handler,
@@ -7151,7 +7159,7 @@ class Select extends SvelteComponent {
 			{
 				clazz: 6,
 				disabled: 3,
-				error: 14,
+				error: 13,
 				fading: 7,
 				i18n: 15,
 				icon: 8,
@@ -7162,7 +7170,7 @@ class Select extends SvelteComponent {
 				node: 2,
 				prop: 9,
 				style: 10,
-				value: 13
+				value: 14
 			},
 			add_css$3
 		);
@@ -8994,6 +9002,7 @@ const createBackwardCompatible = (obj) => {
   if (typeof obj.alternServer === 'undefined') obj.alternServer = false;
   if (typeof obj.keepAuth === 'undefined') obj.keepAuth = false;
   if (typeof obj.showDescription === 'undefined') obj.showDescription = true;
+  if (typeof obj.internalErrors === 'undefined') obj.internalErrors = {};
 };
 
 var utils = {
@@ -9008,41 +9017,41 @@ function add_css(target) {
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[32] = list[i];
+	child_ctx[31] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[35] = list[i];
+	child_ctx[34] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[38] = list[i];
+	child_ctx[37] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_3(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[41] = list[i];
+	child_ctx[40] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_4(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[44] = list[i];
+	child_ctx[43] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_5(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[47] = list[i];
+	child_ctx[46] = list[i];
 	return child_ctx;
 }
 
-// (205:0) {#if error}
+// (208:0) {#if error}
 function create_if_block_12(ctx) {
 	let callout;
 	let current;
@@ -9069,7 +9078,7 @@ function create_if_block_12(ctx) {
 		p(ctx, dirty) {
 			const callout_changes = {};
 
-			if (dirty[0] & /*error*/ 16 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*error*/ 16 | dirty[1] & /*$$scope*/ 262144) {
 				callout_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9090,7 +9099,7 @@ function create_if_block_12(ctx) {
 	};
 }
 
-// (206:2) <Callout type="error">
+// (209:2) <Callout type="error">
 function create_default_slot_16(ctx) {
 	let t;
 
@@ -9110,7 +9119,7 @@ function create_default_slot_16(ctx) {
 	};
 }
 
-// (207:4) 
+// (210:4) 
 function create_header_slot_2(ctx) {
 	let span;
 
@@ -9129,7 +9138,7 @@ function create_header_slot_2(ctx) {
 	};
 }
 
-// (215:4) <Row>
+// (218:4) <Row>
 function create_default_slot_15(ctx) {
 	let input;
 	let updating_node;
@@ -9138,7 +9147,7 @@ function create_default_slot_15(ctx) {
 	let current;
 
 	function input_node_binding(value) {
-		/*input_node_binding*/ ctx[12](value);
+		/*input_node_binding*/ ctx[11](value);
 	}
 
 	let input_props = { prop: "openApiUrl", inline: true };
@@ -9149,19 +9158,21 @@ function create_default_slot_15(ctx) {
 
 	input = new Input({ props: input_props });
 	binding_callbacks.push(() => bind(input, 'node', input_node_binding));
-	input.$on("change", /*change_handler*/ ctx[13]);
+	input.$on("change", /*change_handler*/ ctx[12]);
 
 	button = new Button({
 			props: {
-				icon: /*readSuccessful*/ ctx[7] ? "check-square" : "edit",
-				clazz: /*readSuccessful*/ ctx[7] ? "success" : "",
-				label: /*readSuccessful*/ ctx[7] ? "ok" : "read",
+				icon: /*node*/ ctx[0].internalErrors.readUrl
+				? "edit"
+				: "check-square",
+				clazz: /*node*/ ctx[0].internalErrors.readUrl ? "" : "success",
+				label: /*node*/ ctx[0].internalErrors.readUrl ? "read" : "ok",
 				inline: true,
-				disabled: /*readSuccessful*/ ctx[7]
+				disabled: !/*node*/ ctx[0].internalErrors.readUrl
 			}
 		});
 
-	button.$on("click", /*createApi*/ ctx[8]);
+	button.$on("click", /*createApi*/ ctx[7]);
 
 	return {
 		c() {
@@ -9186,10 +9197,14 @@ function create_default_slot_15(ctx) {
 
 			input.$set(input_changes);
 			const button_changes = {};
-			if (dirty[0] & /*readSuccessful*/ 128) button_changes.icon = /*readSuccessful*/ ctx[7] ? "check-square" : "edit";
-			if (dirty[0] & /*readSuccessful*/ 128) button_changes.clazz = /*readSuccessful*/ ctx[7] ? "success" : "";
-			if (dirty[0] & /*readSuccessful*/ 128) button_changes.label = /*readSuccessful*/ ctx[7] ? "ok" : "read";
-			if (dirty[0] & /*readSuccessful*/ 128) button_changes.disabled = /*readSuccessful*/ ctx[7];
+
+			if (dirty[0] & /*node*/ 1) button_changes.icon = /*node*/ ctx[0].internalErrors.readUrl
+			? "edit"
+			: "check-square";
+
+			if (dirty[0] & /*node*/ 1) button_changes.clazz = /*node*/ ctx[0].internalErrors.readUrl ? "" : "success";
+			if (dirty[0] & /*node*/ 1) button_changes.label = /*node*/ ctx[0].internalErrors.readUrl ? "read" : "ok";
+			if (dirty[0] & /*node*/ 1) button_changes.disabled = !/*node*/ ctx[0].internalErrors.readUrl;
 			button.$set(button_changes);
 		},
 		i(local) {
@@ -9211,7 +9226,7 @@ function create_default_slot_15(ctx) {
 	};
 }
 
-// (219:4) {#if openApiSpec.servers?.length > 1}
+// (222:4) {#if openApiSpec.servers?.length > 1}
 function create_if_block_9(ctx) {
 	let div;
 	let t;
@@ -9266,7 +9281,7 @@ function create_if_block_9(ctx) {
 
 			const row_changes = {};
 
-			if (dirty[0] & /*node, openApiSpec*/ 3 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*node, openApiSpec*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				row_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9292,7 +9307,7 @@ function create_if_block_9(ctx) {
 	};
 }
 
-// (221:8) {#if node.alternServer}
+// (224:8) {#if node.alternServer}
 function create_if_block_11(ctx) {
 	let callout;
 	let current;
@@ -9332,7 +9347,7 @@ function create_if_block_11(ctx) {
 	};
 }
 
-// (222:8) <Callout type="warning" closeable>
+// (225:8) <Callout type="warning" closeable>
 function create_default_slot_14(ctx) {
 	let t;
 
@@ -9349,7 +9364,7 @@ function create_default_slot_14(ctx) {
 	};
 }
 
-// (223:10) 
+// (226:10) 
 function create_header_slot_1(ctx) {
 	let span;
 
@@ -9368,10 +9383,10 @@ function create_header_slot_1(ctx) {
 	};
 }
 
-// (231:12) {#if s.description}
+// (234:12) {#if s.description}
 function create_if_block_10(ctx) {
 	let option;
-	let t_value = /*s*/ ctx[47].description + "";
+	let t_value = /*s*/ ctx[46].description + "";
 	let t;
 	let option_value_value;
 
@@ -9380,7 +9395,7 @@ function create_if_block_10(ctx) {
 			option = element("option");
 			t = text(t_value);
 			option.disabled = true;
-			option.__value = option_value_value = /*s*/ ctx[47].description;
+			option.__value = option_value_value = /*s*/ ctx[46].description;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -9388,9 +9403,9 @@ function create_if_block_10(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*s*/ ctx[47].description + "")) set_data(t, t_value);
+			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*s*/ ctx[46].description + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*s*/ ctx[47].description)) {
+			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*s*/ ctx[46].description)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -9401,16 +9416,16 @@ function create_if_block_10(ctx) {
 	};
 }
 
-// (230:10) {#each openApiSpec.servers as s}
+// (233:10) {#each openApiSpec.servers as s}
 function create_each_block_5(ctx) {
 	let t0;
 	let option0;
-	let t1_value = /*s*/ ctx[47].url + "";
+	let t1_value = /*s*/ ctx[46].url + "";
 	let t1;
 	let option0_value_value;
 	let t2;
 	let option1;
-	let if_block = /*s*/ ctx[47].description && create_if_block_10(ctx);
+	let if_block = /*s*/ ctx[46].description && create_if_block_10(ctx);
 
 	return {
 		c() {
@@ -9421,7 +9436,7 @@ function create_each_block_5(ctx) {
 			t2 = space();
 			option1 = element("option");
 			option1.textContent = "-------------------------";
-			option0.__value = option0_value_value = /*s*/ ctx[47].url;
+			option0.__value = option0_value_value = /*s*/ ctx[46].url;
 			option0.value = option0.__value;
 			option1.disabled = true;
 			option1.__value = "-------------------------";
@@ -9436,7 +9451,7 @@ function create_each_block_5(ctx) {
 			insert(target, option1, anchor);
 		},
 		p(ctx, dirty) {
-			if (/*s*/ ctx[47].description) {
+			if (/*s*/ ctx[46].description) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
@@ -9449,9 +9464,9 @@ function create_each_block_5(ctx) {
 				if_block = null;
 			}
 
-			if (dirty[0] & /*openApiSpec*/ 2 && t1_value !== (t1_value = /*s*/ ctx[47].url + "")) set_data(t1, t1_value);
+			if (dirty[0] & /*openApiSpec*/ 2 && t1_value !== (t1_value = /*s*/ ctx[46].url + "")) set_data(t1, t1_value);
 
-			if (dirty[0] & /*openApiSpec*/ 2 && option0_value_value !== (option0_value_value = /*s*/ ctx[47].url)) {
+			if (dirty[0] & /*openApiSpec*/ 2 && option0_value_value !== (option0_value_value = /*s*/ ctx[46].url)) {
 				option0.__value = option0_value_value;
 				option0.value = option0.__value;
 			}
@@ -9466,7 +9481,7 @@ function create_each_block_5(ctx) {
 	};
 }
 
-// (229:8) <Select inline bind:node prop="server"  disabled={!node.alternServer}>
+// (232:8) <Select inline bind:node prop="server"  disabled={!node.alternServer}>
 function create_default_slot_13(ctx) {
 	let each_1_anchor;
 	let each_value_5 = /*openApiSpec*/ ctx[1].servers;
@@ -9522,7 +9537,7 @@ function create_default_slot_13(ctx) {
 	};
 }
 
-// (228:6) <Row>
+// (231:6) <Row>
 function create_default_slot_12(ctx) {
 	let select;
 	let updating_node;
@@ -9532,7 +9547,7 @@ function create_default_slot_12(ctx) {
 	let current;
 
 	function select_node_binding(value) {
-		/*select_node_binding*/ ctx[14](value);
+		/*select_node_binding*/ ctx[13](value);
 	}
 
 	let select_props = {
@@ -9551,7 +9566,7 @@ function create_default_slot_12(ctx) {
 	binding_callbacks.push(() => bind(select, 'node', select_node_binding));
 
 	function input_node_binding_1(value) {
-		/*input_node_binding_1*/ ctx[15](value);
+		/*input_node_binding_1*/ ctx[14](value);
 	}
 
 	let input_props = { prop: "alternServer", inline: true };
@@ -9579,7 +9594,7 @@ function create_default_slot_12(ctx) {
 			const select_changes = {};
 			if (dirty[0] & /*node*/ 1) select_changes.disabled = !/*node*/ ctx[0].alternServer;
 
-			if (dirty[0] & /*openApiSpec*/ 2 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*openApiSpec*/ 2 | dirty[1] & /*$$scope*/ 262144) {
 				select_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9619,10 +9634,10 @@ function create_default_slot_12(ctx) {
 	};
 }
 
-// (243:6) {#each errorHandlingOptions as eOption}
+// (246:6) {#each errorHandlingOptions as eOption}
 function create_each_block_4(ctx) {
 	let option;
-	let t_value = /*eOption*/ ctx[44] + "";
+	let t_value = /*eOption*/ ctx[43] + "";
 	let t;
 	let option_value_value;
 
@@ -9630,7 +9645,7 @@ function create_each_block_4(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*eOption*/ ctx[44];
+			option.__value = option_value_value = /*eOption*/ ctx[43];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -9644,10 +9659,10 @@ function create_each_block_4(ctx) {
 	};
 }
 
-// (242:4) <Select bind:node prop="errorHandling" icon="warning" >
+// (245:4) <Select bind:node prop="errorHandling" icon="warning" >
 function create_default_slot_11(ctx) {
 	let each_1_anchor;
-	let each_value_4 = /*errorHandlingOptions*/ ctx[9];
+	let each_value_4 = /*errorHandlingOptions*/ ctx[8];
 	let each_blocks = [];
 
 	for (let i = 0; i < each_value_4.length; i += 1) {
@@ -9670,8 +9685,8 @@ function create_default_slot_11(ctx) {
 			insert(target, each_1_anchor, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*errorHandlingOptions*/ 512) {
-				each_value_4 = /*errorHandlingOptions*/ ctx[9];
+			if (dirty[0] & /*errorHandlingOptions*/ 256) {
+				each_value_4 = /*errorHandlingOptions*/ ctx[8];
 				let i;
 
 				for (i = 0; i < each_value_4.length; i += 1) {
@@ -9700,7 +9715,7 @@ function create_default_slot_11(ctx) {
 	};
 }
 
-// (213:2) <Group clazz="paddingBottom">
+// (216:2) <Group clazz="paddingBottom">
 function create_default_slot_10(ctx) {
 	let input0;
 	let updating_node;
@@ -9716,7 +9731,7 @@ function create_default_slot_10(ctx) {
 	let current;
 
 	function input0_node_binding(value) {
-		/*input0_node_binding*/ ctx[11](value);
+		/*input0_node_binding*/ ctx[10](value);
 	}
 
 	let input0_props = { prop: "name" };
@@ -9738,7 +9753,7 @@ function create_default_slot_10(ctx) {
 	let if_block = /*openApiSpec*/ ctx[1].servers?.length > 1 && create_if_block_9(ctx);
 
 	function select_node_binding_1(value) {
-		/*select_node_binding_1*/ ctx[16](value);
+		/*select_node_binding_1*/ ctx[15](value);
 	}
 
 	let select_props = {
@@ -9756,7 +9771,7 @@ function create_default_slot_10(ctx) {
 	binding_callbacks.push(() => bind(select, 'node', select_node_binding_1));
 
 	function input1_node_binding(value) {
-		/*input1_node_binding*/ ctx[17](value);
+		/*input1_node_binding*/ ctx[16](value);
 	}
 
 	let input1_props = {
@@ -9807,7 +9822,7 @@ function create_default_slot_10(ctx) {
 			input0.$set(input0_changes);
 			const row_changes = {};
 
-			if (dirty[0] & /*readSuccessful, node*/ 129 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*node*/ 1 | dirty[1] & /*$$scope*/ 262144) {
 				row_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9838,7 +9853,7 @@ function create_default_slot_10(ctx) {
 
 			const select_changes = {};
 
-			if (dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[1] & /*$$scope*/ 262144) {
 				select_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9890,7 +9905,7 @@ function create_default_slot_10(ctx) {
 	};
 }
 
-// (212:0) <Collapsible label="General" indented={false}>
+// (215:0) <Collapsible label="General" indented={false}>
 function create_default_slot_9(ctx) {
 	let group;
 	let current;
@@ -9914,7 +9929,7 @@ function create_default_slot_9(ctx) {
 		p(ctx, dirty) {
 			const group_changes = {};
 
-			if (dirty[0] & /*node, openApiSpec, readSuccessful*/ 131 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*node, openApiSpec*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				group_changes.$$scope = { dirty, ctx };
 			}
 
@@ -9935,10 +9950,10 @@ function create_default_slot_9(ctx) {
 	};
 }
 
-// (257:10) {:else}
+// (260:10) {:else}
 function create_else_block_3(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[41] + "";
+	let t_value = /*api*/ ctx[40] + "";
 	let t;
 	let option_value_value;
 
@@ -9946,7 +9961,7 @@ function create_else_block_3(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[41];
+			option.__value = option_value_value = /*api*/ ctx[40];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -9954,9 +9969,9 @@ function create_else_block_3(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*api*/ ctx[41] + "")) set_data(t, t_value);
+			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*api*/ ctx[40] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*api*/ ctx[41])) {
+			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*api*/ ctx[40])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -9967,10 +9982,10 @@ function create_else_block_3(ctx) {
 	};
 }
 
-// (255:10) {#if node.api === api}
+// (258:10) {#if node.api === api}
 function create_if_block_8(ctx) {
 	let option;
-	let t_value = /*api*/ ctx[41] + "";
+	let t_value = /*api*/ ctx[40] + "";
 	let t;
 	let option_value_value;
 
@@ -9978,7 +9993,7 @@ function create_if_block_8(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*api*/ ctx[41];
+			option.__value = option_value_value = /*api*/ ctx[40];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -9987,9 +10002,9 @@ function create_if_block_8(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*api*/ ctx[41] + "")) set_data(t, t_value);
+			if (dirty[0] & /*openApiSpec*/ 2 && t_value !== (t_value = /*api*/ ctx[40] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*api*/ ctx[41])) {
+			if (dirty[0] & /*openApiSpec*/ 2 && option_value_value !== (option_value_value = /*api*/ ctx[40])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -10000,12 +10015,12 @@ function create_if_block_8(ctx) {
 	};
 }
 
-// (254:8) { #each Object.keys(openApiSpec.apiList || {}) as api}
+// (257:8) { #each Object.keys(openApiSpec.apiList || {}) as api}
 function create_each_block_3(ctx) {
 	let if_block_anchor;
 
 	function select_block_type(ctx, dirty) {
-		if (/*node*/ ctx[0].api === /*api*/ ctx[41]) return create_if_block_8;
+		if (/*node*/ ctx[0].api === /*api*/ ctx[40]) return create_if_block_8;
 		return create_else_block_3;
 	}
 
@@ -10041,7 +10056,7 @@ function create_each_block_3(ctx) {
 	};
 }
 
-// (252:4) <Select bind:node prop="api" icon="tag" on:change={() => node.operation = ""}>
+// (255:4) <Select bind:node prop="api" icon="tag" on:change={() => node.operation = ""}>
 function create_default_slot_8(ctx) {
 	let option;
 	let t;
@@ -10109,10 +10124,10 @@ function create_default_slot_8(ctx) {
 	};
 }
 
-// (264:6) {#each Object.values(openApiSpec?.apiList?.[node.api] || {}) as operation}
+// (267:6) {#each Object.values(openApiSpec?.apiList?.[node.api] || {}) as operation}
 function create_each_block_2(ctx) {
 	let option;
-	let t_value = /*operation*/ ctx[38].summary + "";
+	let t_value = /*operation*/ ctx[37].summary + "";
 	let t;
 	let option_value_value;
 	let option_selected_value;
@@ -10121,23 +10136,23 @@ function create_each_block_2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*operation*/ ctx[38].operationId;
+			option.__value = option_value_value = /*operation*/ ctx[37].operationId;
 			option.value = option.__value;
-			option.selected = option_selected_value = /*node*/ ctx[0].operation === /*operation*/ ctx[38].operationId;
+			option.selected = option_selected_value = /*node*/ ctx[0].operation === /*operation*/ ctx[37].operationId;
 		},
 		m(target, anchor) {
 			insert(target, option, anchor);
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*openApiSpec, node*/ 3 && t_value !== (t_value = /*operation*/ ctx[38].summary + "")) set_data(t, t_value);
+			if (dirty[0] & /*openApiSpec, node*/ 3 && t_value !== (t_value = /*operation*/ ctx[37].summary + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*openApiSpec, node*/ 3 && option_value_value !== (option_value_value = /*operation*/ ctx[38].operationId)) {
+			if (dirty[0] & /*openApiSpec, node*/ 3 && option_value_value !== (option_value_value = /*operation*/ ctx[37].operationId)) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
 
-			if (dirty[0] & /*node, openApiSpec*/ 3 && option_selected_value !== (option_selected_value = /*node*/ ctx[0].operation === /*operation*/ ctx[38].operationId)) {
+			if (dirty[0] & /*node, openApiSpec*/ 3 && option_selected_value !== (option_selected_value = /*node*/ ctx[0].operation === /*operation*/ ctx[37].operationId)) {
 				option.selected = option_selected_value;
 			}
 		},
@@ -10147,7 +10162,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (262:4) <Select bind:node prop="operation" icon="wrench">
+// (265:4) <Select bind:node prop="operation" icon="wrench">
 function create_default_slot_7(ctx) {
 	let option;
 	let t;
@@ -10215,7 +10230,7 @@ function create_default_slot_7(ctx) {
 	};
 }
 
-// (269:4) {#if operationDescription}
+// (272:4) {#if operationDescription}
 function create_if_block_6(ctx) {
 	let div;
 	let callout;
@@ -10224,7 +10239,7 @@ function create_if_block_6(ctx) {
 	let current;
 
 	function callout_show_binding(value) {
-		/*callout_show_binding*/ ctx[21](value);
+		/*callout_show_binding*/ ctx[20](value);
 	}
 
 	let callout_props = {
@@ -10265,7 +10280,7 @@ function create_if_block_6(ctx) {
 			const callout_changes = {};
 			if (dirty[0] & /*init*/ 64) callout_changes.fading = !/*init*/ ctx[6];
 
-			if (dirty[0] & /*operationDescription*/ 32 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*operationDescription*/ 32 | dirty[1] & /*$$scope*/ 262144) {
 				callout_changes.$$scope = { dirty, ctx };
 			}
 
@@ -10319,7 +10334,7 @@ function create_if_block_6(ctx) {
 	};
 }
 
-// (271:6) <Callout type="info" closeable bind:show={node.showDescription} fading={!init}>
+// (274:6) <Callout type="info" closeable bind:show={node.showDescription} fading={!init}>
 function create_default_slot_6(ctx) {
 	let html_tag;
 	let html_anchor;
@@ -10344,7 +10359,7 @@ function create_default_slot_6(ctx) {
 	};
 }
 
-// (272:8) 
+// (275:8) 
 function create_header_slot(ctx) {
 	let span;
 
@@ -10363,7 +10378,7 @@ function create_header_slot(ctx) {
 	};
 }
 
-// (275:6) {#if !node.showDescription}
+// (278:6) {#if !node.showDescription}
 function create_if_block_7(ctx) {
 	let button;
 	let current;
@@ -10376,7 +10391,7 @@ function create_if_block_7(ctx) {
 			}
 		});
 
-	button.$on("click", /*click_handler*/ ctx[22]);
+	button.$on("click", /*click_handler*/ ctx[21]);
 
 	return {
 		c() {
@@ -10402,10 +10417,10 @@ function create_if_block_7(ctx) {
 	};
 }
 
-// (285:8) {:else}
+// (288:8) {:else}
 function create_else_block_2(ctx) {
 	let option;
-	let t_value = /*reqCT*/ ctx[35] + "";
+	let t_value = /*reqCT*/ ctx[34] + "";
 	let t;
 	let option_value_value;
 
@@ -10413,7 +10428,7 @@ function create_else_block_2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*reqCT*/ ctx[35];
+			option.__value = option_value_value = /*reqCT*/ ctx[34];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -10421,9 +10436,9 @@ function create_else_block_2(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*requestContentTypes*/ 4 && t_value !== (t_value = /*reqCT*/ ctx[35] + "")) set_data(t, t_value);
+			if (dirty[0] & /*requestContentTypes*/ 4 && t_value !== (t_value = /*reqCT*/ ctx[34] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*requestContentTypes*/ 4 && option_value_value !== (option_value_value = /*reqCT*/ ctx[35])) {
+			if (dirty[0] & /*requestContentTypes*/ 4 && option_value_value !== (option_value_value = /*reqCT*/ ctx[34])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -10434,10 +10449,10 @@ function create_else_block_2(ctx) {
 	};
 }
 
-// (283:8) {#if node.requestContentType === reqCT}
+// (286:8) {#if node.requestContentType === reqCT}
 function create_if_block_5(ctx) {
 	let option;
-	let t_value = /*reqCT*/ ctx[35] + "";
+	let t_value = /*reqCT*/ ctx[34] + "";
 	let t;
 	let option_value_value;
 
@@ -10445,7 +10460,7 @@ function create_if_block_5(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*reqCT*/ ctx[35];
+			option.__value = option_value_value = /*reqCT*/ ctx[34];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -10454,9 +10469,9 @@ function create_if_block_5(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*requestContentTypes*/ 4 && t_value !== (t_value = /*reqCT*/ ctx[35] + "")) set_data(t, t_value);
+			if (dirty[0] & /*requestContentTypes*/ 4 && t_value !== (t_value = /*reqCT*/ ctx[34] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*requestContentTypes*/ 4 && option_value_value !== (option_value_value = /*reqCT*/ ctx[35])) {
+			if (dirty[0] & /*requestContentTypes*/ 4 && option_value_value !== (option_value_value = /*reqCT*/ ctx[34])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -10467,12 +10482,12 @@ function create_if_block_5(ctx) {
 	};
 }
 
-// (282:6) {#each requestContentTypes as reqCT}
+// (285:6) {#each requestContentTypes as reqCT}
 function create_each_block_1(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_1(ctx, dirty) {
-		if (/*node*/ ctx[0].requestContentType === /*reqCT*/ ctx[35]) return create_if_block_5;
+		if (/*node*/ ctx[0].requestContentType === /*reqCT*/ ctx[34]) return create_if_block_5;
 		return create_else_block_2;
 	}
 
@@ -10508,7 +10523,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (281:4) <Select clazz="noLongLabel" bind:node prop="requestContentType">
+// (284:4) <Select clazz="noLongLabel" bind:node prop="requestContentType">
 function create_default_slot_5(ctx) {
 	let each_1_anchor;
 	let each_value_1 = /*requestContentTypes*/ ctx[2];
@@ -10564,14 +10579,14 @@ function create_default_slot_5(ctx) {
 	};
 }
 
-// (290:4) {#if responseContentTypes.length }
+// (293:4) {#if responseContentTypes.length }
 function create_if_block_3(ctx) {
 	let select;
 	let updating_node;
 	let current;
 
 	function select_node_binding_2(value) {
-		/*select_node_binding_2*/ ctx[24](value);
+		/*select_node_binding_2*/ ctx[23](value);
 	}
 
 	let select_props = {
@@ -10601,7 +10616,7 @@ function create_if_block_3(ctx) {
 			const select_changes = {};
 			if (dirty[0] & /*init*/ 64) select_changes.fading = !/*init*/ ctx[6];
 
-			if (dirty[0] & /*responseContentTypes, node*/ 9 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*responseContentTypes, node*/ 9 | dirty[1] & /*$$scope*/ 262144) {
 				select_changes.$$scope = { dirty, ctx };
 			}
 
@@ -10628,10 +10643,10 @@ function create_if_block_3(ctx) {
 	};
 }
 
-// (295:10) {:else}
+// (298:10) {:else}
 function create_else_block_1(ctx) {
 	let option;
-	let t_value = /*resCT*/ ctx[32] + "";
+	let t_value = /*resCT*/ ctx[31] + "";
 	let t;
 	let option_value_value;
 
@@ -10639,7 +10654,7 @@ function create_else_block_1(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*resCT*/ ctx[32];
+			option.__value = option_value_value = /*resCT*/ ctx[31];
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -10647,9 +10662,9 @@ function create_else_block_1(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*responseContentTypes*/ 8 && t_value !== (t_value = /*resCT*/ ctx[32] + "")) set_data(t, t_value);
+			if (dirty[0] & /*responseContentTypes*/ 8 && t_value !== (t_value = /*resCT*/ ctx[31] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*responseContentTypes*/ 8 && option_value_value !== (option_value_value = /*resCT*/ ctx[32])) {
+			if (dirty[0] & /*responseContentTypes*/ 8 && option_value_value !== (option_value_value = /*resCT*/ ctx[31])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -10660,10 +10675,10 @@ function create_else_block_1(ctx) {
 	};
 }
 
-// (293:10) {#if node.responseContentType === resCT}
+// (296:10) {#if node.responseContentType === resCT}
 function create_if_block_4(ctx) {
 	let option;
-	let t_value = /*resCT*/ ctx[32] + "";
+	let t_value = /*resCT*/ ctx[31] + "";
 	let t;
 	let option_value_value;
 
@@ -10671,7 +10686,7 @@ function create_if_block_4(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*resCT*/ ctx[32];
+			option.__value = option_value_value = /*resCT*/ ctx[31];
 			option.value = option.__value;
 			option.selected = true;
 		},
@@ -10680,9 +10695,9 @@ function create_if_block_4(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*responseContentTypes*/ 8 && t_value !== (t_value = /*resCT*/ ctx[32] + "")) set_data(t, t_value);
+			if (dirty[0] & /*responseContentTypes*/ 8 && t_value !== (t_value = /*resCT*/ ctx[31] + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*responseContentTypes*/ 8 && option_value_value !== (option_value_value = /*resCT*/ ctx[32])) {
+			if (dirty[0] & /*responseContentTypes*/ 8 && option_value_value !== (option_value_value = /*resCT*/ ctx[31])) {
 				option.__value = option_value_value;
 				option.value = option.__value;
 			}
@@ -10693,12 +10708,12 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (292:8) {#each responseContentTypes as resCT}
+// (295:8) {#each responseContentTypes as resCT}
 function create_each_block(ctx) {
 	let if_block_anchor;
 
 	function select_block_type_2(ctx, dirty) {
-		if (/*node*/ ctx[0].responseContentType === /*resCT*/ ctx[32]) return create_if_block_4;
+		if (/*node*/ ctx[0].responseContentType === /*resCT*/ ctx[31]) return create_if_block_4;
 		return create_else_block_1;
 	}
 
@@ -10734,7 +10749,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (291:6) <Select clazz="noLongLabel" bind:node prop="responseContentType" fading={!init} >
+// (294:6) <Select clazz="noLongLabel" bind:node prop="responseContentType" fading={!init} >
 function create_default_slot_4(ctx) {
 	let each_1_anchor;
 	let each_value = /*responseContentTypes*/ ctx[3];
@@ -10790,7 +10805,7 @@ function create_default_slot_4(ctx) {
 	};
 }
 
-// (251:2) <Group clazz="paddingBottom">
+// (254:2) <Group clazz="paddingBottom">
 function create_default_slot_3(ctx) {
 	let select0;
 	let updating_node;
@@ -10806,7 +10821,7 @@ function create_default_slot_3(ctx) {
 	let current;
 
 	function select0_node_binding(value) {
-		/*select0_node_binding*/ ctx[18](value);
+		/*select0_node_binding*/ ctx[17](value);
 	}
 
 	let select0_props = {
@@ -10822,10 +10837,10 @@ function create_default_slot_3(ctx) {
 
 	select0 = new Select({ props: select0_props });
 	binding_callbacks.push(() => bind(select0, 'node', select0_node_binding));
-	select0.$on("change", /*change_handler_1*/ ctx[19]);
+	select0.$on("change", /*change_handler_1*/ ctx[18]);
 
 	function select1_node_binding(value) {
-		/*select1_node_binding*/ ctx[20](value);
+		/*select1_node_binding*/ ctx[19](value);
 	}
 
 	let select1_props = {
@@ -10844,7 +10859,7 @@ function create_default_slot_3(ctx) {
 	let if_block0 = /*operationDescription*/ ctx[5] && create_if_block_6(ctx);
 
 	function select2_node_binding(value) {
-		/*select2_node_binding*/ ctx[23](value);
+		/*select2_node_binding*/ ctx[22](value);
 	}
 
 	let select2_props = {
@@ -10891,7 +10906,7 @@ function create_default_slot_3(ctx) {
 		p(ctx, dirty) {
 			const select0_changes = {};
 
-			if (dirty[0] & /*openApiSpec, node*/ 3 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*openApiSpec, node*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				select0_changes.$$scope = { dirty, ctx };
 			}
 
@@ -10904,7 +10919,7 @@ function create_default_slot_3(ctx) {
 			select0.$set(select0_changes);
 			const select1_changes = {};
 
-			if (dirty[0] & /*openApiSpec, node*/ 3 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*openApiSpec, node*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				select1_changes.$$scope = { dirty, ctx };
 			}
 
@@ -10941,7 +10956,7 @@ function create_default_slot_3(ctx) {
 
 			const select2_changes = {};
 
-			if (dirty[0] & /*requestContentTypes, node*/ 5 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*requestContentTypes, node*/ 5 | dirty[1] & /*$$scope*/ 262144) {
 				select2_changes.$$scope = { dirty, ctx };
 			}
 
@@ -11008,7 +11023,7 @@ function create_default_slot_3(ctx) {
 	};
 }
 
-// (250:0) <Collapsible label="Api options" indented={false}>
+// (253:0) <Collapsible label="Api options" indented={false}>
 function create_default_slot_2(ctx) {
 	let group;
 	let current;
@@ -11032,7 +11047,7 @@ function create_default_slot_2(ctx) {
 		p(ctx, dirty) {
 			const group_changes = {};
 
-			if (dirty[0] & /*init, node, responseContentTypes, requestContentTypes, operationDescription, openApiSpec*/ 111 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*init, node, responseContentTypes, requestContentTypes, operationDescription, openApiSpec*/ 111 | dirty[1] & /*$$scope*/ 262144) {
 				group_changes.$$scope = { dirty, ctx };
 			}
 
@@ -11053,7 +11068,7 @@ function create_default_slot_2(ctx) {
 	};
 }
 
-// (304:0) {#if node.api && node.operation}
+// (307:0) {#if node.api && node.operation}
 function create_if_block(ctx) {
 	let current_block_type_index;
 	let if_block;
@@ -11123,7 +11138,7 @@ function create_if_block(ctx) {
 	};
 }
 
-// (333:2) {:else}
+// (336:2) {:else}
 function create_else_block(ctx) {
 	let callout;
 	let current;
@@ -11147,7 +11162,7 @@ function create_else_block(ctx) {
 		p(ctx, dirty) {
 			const callout_changes = {};
 
-			if (dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[1] & /*$$scope*/ 262144) {
 				callout_changes.$$scope = { dirty, ctx };
 			}
 
@@ -11168,7 +11183,7 @@ function create_else_block(ctx) {
 	};
 }
 
-// (305:2) {#if node.parameters.length > 0}
+// (308:2) {#if node.parameters.length > 0}
 function create_if_block_1(ctx) {
 	let div;
 	let t3;
@@ -11177,7 +11192,7 @@ function create_if_block_1(ctx) {
 	let current;
 
 	function editablelist_elements_binding(value) {
-		/*editablelist_elements_binding*/ ctx[27](value);
+		/*editablelist_elements_binding*/ ctx[26](value);
 	}
 
 	let editablelist_props = {
@@ -11185,8 +11200,8 @@ function create_if_block_1(ctx) {
 		$$slots: {
 			default: [
 				create_default_slot,
-				({ element: param, index }) => ({ 30: param, 31: index }),
-				({ element: param, index }) => [param ? 1073741824 : 0, index ? 1 : 0]
+				({ element: param, index }) => ({ 29: param, 30: index }),
+				({ element: param, index }) => [(param ? 536870912 : 0) | (index ? 1073741824 : 0)]
 			]
 		},
 		$$scope: { ctx }
@@ -11220,7 +11235,7 @@ function create_if_block_1(ctx) {
 		p(ctx, dirty) {
 			const editablelist_changes = {};
 
-			if (dirty[0] & /*param, node*/ 1073741825 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*param, node*/ 536870913 | dirty[1] & /*$$scope*/ 262144) {
 				editablelist_changes.$$scope = { dirty, ctx };
 			}
 
@@ -11249,7 +11264,7 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (334:4) <Callout type="info">
+// (337:4) <Callout type="info">
 function create_default_slot_1(ctx) {
 	let t;
 
@@ -11266,11 +11281,11 @@ function create_default_slot_1(ctx) {
 	};
 }
 
-// (329:6) {#if param?.schema?.type === "object"}
+// (332:6) {#if param?.schema?.type === "object"}
 function create_if_block_2(ctx) {
 	let jsonparamhelper;
 	let current;
-	jsonparamhelper = new JsonParamHelper({ props: { param: /*param*/ ctx[30] } });
+	jsonparamhelper = new JsonParamHelper({ props: { param: /*param*/ ctx[29] } });
 
 	return {
 		c() {
@@ -11282,7 +11297,7 @@ function create_if_block_2(ctx) {
 		},
 		p(ctx, dirty) {
 			const jsonparamhelper_changes = {};
-			if (dirty[0] & /*param*/ 1073741824) jsonparamhelper_changes.param = /*param*/ ctx[30];
+			if (dirty[0] & /*param*/ 536870912) jsonparamhelper_changes.param = /*param*/ ctx[29];
 			jsonparamhelper.$set(jsonparamhelper_changes);
 		},
 		i(local) {
@@ -11300,7 +11315,7 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (310:4) <EditableList bind:elements={node.parameters} let:element={param} let:index maxHeight="800" >
+// (313:4) <EditableList bind:elements={node.parameters} let:element={param} let:index maxHeight="800" >
 function create_default_slot(ctx) {
 	let div;
 	let input;
@@ -11311,36 +11326,36 @@ function create_default_slot(ctx) {
 	let current;
 
 	function change_handler_2(...args) {
-		return /*change_handler_2*/ ctx[25](/*index*/ ctx[31], ...args);
+		return /*change_handler_2*/ ctx[24](/*index*/ ctx[30], ...args);
 	}
 
 	input = new Input({
 			props: {
 				type: "checkbox",
-				label: /*param*/ ctx[30].name + ": " + /*param*/ ctx[30].description,
-				value: /*param*/ ctx[30].isActive,
-				disabled: /*param*/ ctx[30].required
+				label: /*param*/ ctx[29].name + ": " + /*param*/ ctx[29].description,
+				value: /*param*/ ctx[29].isActive,
+				disabled: /*param*/ ctx[29].required
 			}
 		});
 
 	input.$on("change", change_handler_2);
 
 	function change_handler_3(...args) {
-		return /*change_handler_3*/ ctx[26](/*index*/ ctx[31], /*param*/ ctx[30], ...args);
+		return /*change_handler_3*/ ctx[25](/*index*/ ctx[30], /*param*/ ctx[29], ...args);
 	}
 
 	typedinput = new TypedInput({
 			props: {
-				types: /*param*/ ctx[30].allowedTypes,
-				type: /*param*/ ctx[30].type,
-				value: /*param*/ ctx[30].value,
-				id: /*param*/ ctx[30].id,
-				disabled: !/*param*/ ctx[30].isActive
+				types: /*param*/ ctx[29].allowedTypes,
+				type: /*param*/ ctx[29].type,
+				value: /*param*/ ctx[29].value,
+				id: /*param*/ ctx[29].id,
+				disabled: !/*param*/ ctx[29].isActive
 			}
 		});
 
 	typedinput.$on("change", change_handler_3);
-	let if_block = /*param*/ ctx[30]?.schema?.type === "object" && create_if_block_2(ctx);
+	let if_block = /*param*/ ctx[29]?.schema?.type === "object" && create_if_block_2(ctx);
 
 	return {
 		c() {
@@ -11351,7 +11366,7 @@ function create_default_slot(ctx) {
 			t1 = space();
 			if (if_block) if_block.c();
 			if_block_anchor = empty();
-			toggle_class(div, "required", /*param*/ ctx[30].required);
+			toggle_class(div, "required", /*param*/ ctx[29].required);
 		},
 		m(target, anchor) {
 			insert(target, div, anchor);
@@ -11366,28 +11381,28 @@ function create_default_slot(ctx) {
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
 			const input_changes = {};
-			if (dirty[0] & /*param*/ 1073741824) input_changes.label = /*param*/ ctx[30].name + ": " + /*param*/ ctx[30].description;
-			if (dirty[0] & /*param*/ 1073741824) input_changes.value = /*param*/ ctx[30].isActive;
-			if (dirty[0] & /*param*/ 1073741824) input_changes.disabled = /*param*/ ctx[30].required;
+			if (dirty[0] & /*param*/ 536870912) input_changes.label = /*param*/ ctx[29].name + ": " + /*param*/ ctx[29].description;
+			if (dirty[0] & /*param*/ 536870912) input_changes.value = /*param*/ ctx[29].isActive;
+			if (dirty[0] & /*param*/ 536870912) input_changes.disabled = /*param*/ ctx[29].required;
 			input.$set(input_changes);
 
-			if (dirty[0] & /*param*/ 1073741824) {
-				toggle_class(div, "required", /*param*/ ctx[30].required);
+			if (dirty[0] & /*param*/ 536870912) {
+				toggle_class(div, "required", /*param*/ ctx[29].required);
 			}
 
 			const typedinput_changes = {};
-			if (dirty[0] & /*param*/ 1073741824) typedinput_changes.types = /*param*/ ctx[30].allowedTypes;
-			if (dirty[0] & /*param*/ 1073741824) typedinput_changes.type = /*param*/ ctx[30].type;
-			if (dirty[0] & /*param*/ 1073741824) typedinput_changes.value = /*param*/ ctx[30].value;
-			if (dirty[0] & /*param*/ 1073741824) typedinput_changes.id = /*param*/ ctx[30].id;
-			if (dirty[0] & /*param*/ 1073741824) typedinput_changes.disabled = !/*param*/ ctx[30].isActive;
+			if (dirty[0] & /*param*/ 536870912) typedinput_changes.types = /*param*/ ctx[29].allowedTypes;
+			if (dirty[0] & /*param*/ 536870912) typedinput_changes.type = /*param*/ ctx[29].type;
+			if (dirty[0] & /*param*/ 536870912) typedinput_changes.value = /*param*/ ctx[29].value;
+			if (dirty[0] & /*param*/ 536870912) typedinput_changes.id = /*param*/ ctx[29].id;
+			if (dirty[0] & /*param*/ 536870912) typedinput_changes.disabled = !/*param*/ ctx[29].isActive;
 			typedinput.$set(typedinput_changes);
 
-			if (/*param*/ ctx[30]?.schema?.type === "object") {
+			if (/*param*/ ctx[29]?.schema?.type === "object") {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 
-					if (dirty[0] & /*param*/ 1073741824) {
+					if (dirty[0] & /*param*/ 536870912) {
 						transition_in(if_block, 1);
 					}
 				} else {
@@ -11509,14 +11524,14 @@ function create_fragment(ctx) {
 
 			const collapsible0_changes = {};
 
-			if (dirty[0] & /*node, openApiSpec, readSuccessful*/ 131 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*node, openApiSpec*/ 3 | dirty[1] & /*$$scope*/ 262144) {
 				collapsible0_changes.$$scope = { dirty, ctx };
 			}
 
 			collapsible0.$set(collapsible0_changes);
 			const collapsible1_changes = {};
 
-			if (dirty[0] & /*init, node, responseContentTypes, requestContentTypes, operationDescription, openApiSpec*/ 111 | dirty[1] & /*$$scope*/ 524288) {
+			if (dirty[0] & /*init, node, responseContentTypes, requestContentTypes, operationDescription, openApiSpec*/ 111 | dirty[1] & /*$$scope*/ 262144) {
 				collapsible1_changes.$$scope = { dirty, ctx };
 			}
 
@@ -11588,15 +11603,11 @@ RED.nodes.registerType('openApi-red', {
 			label: 'URL',
 			icon: 'globe',
 			validate(v) {
-				if (!v) return false;
-				const urlWithoutFileExtension = v.substring(0, v.lastIndexOf('.'));
-				const urlExpression = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
-
-				if (urlWithoutFileExtension.match(new RegExp(urlExpression))) {
-					return true;
+				if (!v || this?.internalErrors?.readUrl) {
+					return false;
 				}
 
-				return false;
+				return true;
 			}
 		},
 		api: { value: '', label: 'API tag' },
@@ -11613,6 +11624,7 @@ RED.nodes.registerType('openApi-red', {
 			value: 'Standard',
 			label: 'Error handling'
 		},
+		internalErrors: { value: {} },
 		parameters: {
 			value: [],
 			label: 'Parameters',
@@ -11676,22 +11688,31 @@ function instance($$self, $$props, $$invalidate) {
 	let operationDescription = '';
 	let prevOperation;
 	if (node.operation) prevOperation = node.operation.toString();
-	node.saveTypedInputAgain = [];
+	node.saveTypedInputAgain = []; // will not be saved, is just for workaround
 	let requestContentTypes = [];
 	let responseContentTypes = [];
 	let oldParameters = {};
 	utils.createBackwardCompatible(node);
+	node.internalErrors.readUrl = true;
 
-	const setError = message => {
+	const setError = (message, inputFieldId = null) => {
 		$$invalidate(2, requestContentTypes = []);
 		$$invalidate(3, responseContentTypes = []);
-		if (typeof message !== 'string') message = JSON.stringify(message);
+
+		if (typeof message !== 'string') {
+			message = JSON.stringify(message);
+		}
+
 		$$invalidate(4, error = message);
+
+		if (inputFieldId) {
+			document.getElementById(inputFieldId).classList.add("input-error");
+		}
+
 		return;
 	};
 
 	let init = true;
-	let readSuccessful = false;
 
 	const createApi = async () => {
 		try {
@@ -11700,7 +11721,7 @@ function instance($$self, $$props, $$invalidate) {
 
 			// if a string was returned it is a node error
 			if (typeof openApiSpec === 'string') {
-				setError(openApiSpec);
+				setError(openApiSpec, 'node-input-openApiUrl');
 			} else {
 				$$invalidate(1, openApiSpec.apiList = openApiSpec.apiList || {}, openApiSpec);
 				$$invalidate(1, openApiSpec.servers = openApiSpec.servers || [], openApiSpec);
@@ -11710,15 +11731,15 @@ function instance($$self, $$props, $$invalidate) {
 				if (!Array.isArray(node.parameters) && node.api && node.operation) {
 					Object.assign(oldParameters, node.parameters);
 					$$invalidate(0, node.parameters = [], node);
-					$$invalidate(10, prevOperation = '');
+					$$invalidate(9, prevOperation = '');
 					$$invalidate(0, node.operationData = openApiSpec.apiList?.[node.api]?.[node.operation], node);
 				}
 
-				$$invalidate(7, readSuccessful = true);
+				$$invalidate(0, node.internalErrors.readUrl = false, node);
 			}
 		} catch(e) {
-			$$invalidate(7, readSuccessful = false);
-			setError(e);
+			$$invalidate(0, node.internalErrors.readUrl = true, node);
+			setError(e, 'node-input-openApiUrl');
 		}
 
 		$$invalidate(6, init = false);
@@ -11732,52 +11753,52 @@ function instance($$self, $$props, $$invalidate) {
 
 	function input0_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function input_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
-	const change_handler = () => $$invalidate(7, readSuccessful = false);
+	const change_handler = () => $$invalidate(0, node.internalErrors.readUrl = true, node);
 
 	function select_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function input_node_binding_1(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function select_node_binding_1(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function input1_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function select0_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	const change_handler_1 = () => $$invalidate(0, node.operation = "", node);
 
 	function select1_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function callout_show_binding(value) {
 		if ($$self.$$.not_equal(node.showDescription, value)) {
 			node.showDescription = value;
-			((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+			((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 		}
 	}
 
@@ -11785,12 +11806,12 @@ function instance($$self, $$props, $$invalidate) {
 
 	function select2_node_binding(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	function select_node_binding_2(value) {
 		node = value;
-		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+		((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 	}
 
 	const change_handler_2 = (index, e) => $$invalidate(0, node.parameters[index].isActive = e.detail.value, node);
@@ -11811,7 +11832,7 @@ function instance($$self, $$props, $$invalidate) {
 	function editablelist_elements_binding(value) {
 		if ($$self.$$.not_equal(node.parameters, value)) {
 			node.parameters = value;
-			((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(10, prevOperation)), $$invalidate(28, oldParameters));
+			((((($$invalidate(0, node), $$invalidate(1, openApiSpec)), $$invalidate(2, requestContentTypes)), $$invalidate(3, responseContentTypes)), $$invalidate(9, prevOperation)), $$invalidate(27, oldParameters));
 		}
 	}
 
@@ -11820,7 +11841,7 @@ function instance($$self, $$props, $$invalidate) {
 	};
 
 	$$self.$$.update = () => {
-		if ($$self.$$.dirty[0] & /*openApiSpec, node, requestContentTypes, responseContentTypes, prevOperation*/ 1039) {
+		if ($$self.$$.dirty[0] & /*openApiSpec, node, requestContentTypes, responseContentTypes, prevOperation*/ 527) {
 			// create content type selection and parameter list
 			if (Object.keys(openApiSpec.apiList || {}).length && node.operation) {
 				$$invalidate(5, operationDescription = htmlFunctions.createOperationDescription(openApiSpec.apiList, node));
@@ -11868,7 +11889,7 @@ function instance($$self, $$props, $$invalidate) {
 				// clear parameters if operation has changed
 				if (prevOperation !== node.operation) {
 					node.parameters.splice(0, node.parameters.length);
-					$$invalidate(10, prevOperation = node.operation);
+					$$invalidate(9, prevOperation = node.operation);
 					$$invalidate(0, node.operationData = openApiSpec.apiList?.[node.api]?.[node.operation] || {}, node);
 					htmlFunctions.createParameters(node, oldParameters);
 				}
@@ -11894,7 +11915,6 @@ function instance($$self, $$props, $$invalidate) {
 		error,
 		operationDescription,
 		init,
-		readSuccessful,
 		createApi,
 		errorHandlingOptions,
 		prevOperation,
