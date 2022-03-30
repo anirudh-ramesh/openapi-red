@@ -1,5 +1,8 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.0.9**
+- updated package.json no change in code
+
 **Version 1.0.8**
 - Url Regex check removed, but url will be error if not read successfully
 - Updated swagger client and SIR 
