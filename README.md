@@ -61,6 +61,10 @@ Or check it out with gitpod.
 
 A ready to launch gitpod setting is available. Just start it, wait till your workspace is ready and enter `node-red examples/openApi-petstore.json`.
 
+
+## License
+This repository and the code inside it is licensed under the MIT License. Read LICENSE for more information.
+
 ## Developers
 
 If you want to modify something inside the openApi-red.html file, I recommend to use [SIR](https://gitlab.com/2WeltenChris/svelte-integration-red).
