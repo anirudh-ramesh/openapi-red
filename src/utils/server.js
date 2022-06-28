@@ -1,6 +1,6 @@
 const createNewApiList = (client) => {
   const newApiList = {}
-  const paths = client.spec.paths
+  const paths = client.spec.paths || {}
   Object.keys(paths).forEach((pathKey) => {
     const path = paths[pathKey]
     Object.keys(path).forEach((operationKey) => {
@@ -16,7 +16,6 @@ const createNewApiList = (client) => {
           operation.pathName = pathKey
           operation.method = operationKey
         }
-
         // default if no array tag exists
         if ((!operation.tags) || operation.tags.constructor !== Array || operation.tags.length === 0) operation.tags = ['default']
         for (const tag of operation.tags) {
@@ -45,7 +44,20 @@ const getNewServerUrl = (config, openApiUrl, reqUrl) => {
   return newServerUrl + urlParam
 }
 
+// preferred use operationId. If not available use pathname + method
+const identifyOperation = (config) => {
+  let operationId, pathName, method
+  if (config.operationData.withoutOriginalOpId) {
+    pathName = config.operationData.pathName
+    method = config.operationData.method
+  } else {
+    operationId = config.operation
+  }
+  return { operationId, pathName, method }
+}
+
 module.exports = {
   createNewApiList,
-  getNewServerUrl
+  getNewServerUrl,
+  identifyOperation
 }

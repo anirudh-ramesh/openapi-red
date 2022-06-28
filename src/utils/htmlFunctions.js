@@ -1,11 +1,57 @@
-const getOpenApiSpec = async (openApiUrl) => {
-  const url = encodeURI(openApiUrl)
+const getOpenApiSpec = async (openApiUrl, devMode = false) => {
+  let url = 'getOpenApiSpec?openApiUrl=' + encodeURI(openApiUrl)
+  if (devMode) {
+    url += '&devMode=true'
+  }
   // server call
-  return window.$.get('getOpenApiSpec?openApiUrl=' + url, function (response) {
+  return window.$.get(url, function (response) {
     return response
   }).fail(function (message) {
     return message
   })
+}
+
+const setError = (message, inputFieldId = null, data) => {
+  data.contentTypes.request = []
+  data.contentTypes.response = []
+  if (typeof message !== 'string') {
+    message = JSON.stringify(message)
+  }
+  data.error = message
+  if (inputFieldId) {
+    document.getElementById(inputFieldId).classList.add('input-error')
+  }
+}
+
+const createApi = async (node, data) => {
+  try {
+    data.error = ''
+    data.openApiSpec = await getOpenApiSpec(node.openApiUrl, node.devMode)
+    // if a string was returned it is a node error
+    if (typeof data.openApiSpec === 'string') {
+      setError(data.openApiSpec, 'node-input-openApiUrl', data)
+    } else if (!Object.keys(data.openApiSpec.apiList).length) {
+      setError('No api list found', 'node-input-openApiUrl', data)
+    } else {
+      // trigger svelte to show latest data
+      data.openApiSpec.apiList = data.openApiSpec.apiList || {}
+      data.openApiSpec.servers = data.openApiSpec.servers || []
+
+      if (data.openApiSpec.servers.length <= 1) node.server = ''
+      // save old parameter objects (openApi-red version <0.2) - changed from object to array objects
+      if (!Array.isArray(node.parameters) && node.api && node.operation) {
+        Object.assign(data.oldParameters, node.parameters)
+        node.parameters = []
+        data.prevOperation = ''
+        node.operationData = data.openApiSpec.apiList?.[node.api]?.[node.operation]
+      }
+      node.internalErrors.readUrl = false
+    }
+  } catch (e) {
+    node.internalErrors.readUrl = true
+    setError(e, 'node-input-openApiUrl', data)
+  }
+  data.init = false
 }
 
 const getCorrectType = (param) => {
@@ -60,13 +106,13 @@ const createParameters = (node, oldParameters) => {
   if (!node.operationData.parameters?.requestBody && node.operationData?.requestBody?.content) {
     const requestBody = node.operationData.requestBody
     const content = requestBody.content
-    const keys = sortKeys(content[node.contentType].schema)
-    if (content[node.contentType]) {
+    const keys = sortKeys(content[node.requestContentType].schema)
+    if (content[node.requestContentType]) {
       const newParameter = {
         id: 'requestBody',
         name: 'Request body',
         in: '',
-        schema: content[node.contentType].schema || null,
+        schema: content[node.requestContentType].schema || null,
         value: oldParameters?.[' Request body']?.value || '{}',
         required: !!requestBody?.required || false,
         isActive: !!requestBody?.required || oldParameters?.[' Request body']?.isActive || false,
@@ -114,11 +160,39 @@ const createOperationDescription = (apiList, node) => {
   return operationDescription
 }
 
+const getRequestContentTypes = (operationSchema) => {
+  // needed input since an update from swagger.js
+  let requestContentTypes = ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']
+  if (operationSchema?.requestBody?.content) {
+    requestContentTypes = Object.keys(operationSchema.requestBody.content || {})
+  }
+  return requestContentTypes
+}
+
+const getResponseContentTypes = (operationSchema) => {
+  let responseContentTypes = []
+  if (operationSchema?.responses) {
+    Object.values(operationSchema.responses).forEach(response => {
+      if (response?.content) {
+        Object.keys(response.content)?.forEach(cT => responseContentTypes.push(cT))
+      }
+    })
+  }
+  if (responseContentTypes.length) {
+    // distinct array
+    responseContentTypes = Array.from(new Set(responseContentTypes))
+  }
+  return responseContentTypes
+}
+
 module.exports = {
   getOpenApiSpec,
   getCorrectType,
   getAllowedTypes,
   sortKeys,
   createParameters,
-  createOperationDescription
+  createOperationDescription,
+  getRequestContentTypes,
+  getResponseContentTypes,
+  createApi
 }

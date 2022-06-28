@@ -1,4 +1,4 @@
-const { createNewApiList, getNewServerUrl } = require('./utils/server.js')
+const { createNewApiList, getNewServerUrl, identifyOperation } = require('./utils/server.js')
 const { createBackwardCompatible } = require('./utils/utils.js')
 const Swagger = require('swagger-client')
 
@@ -31,11 +31,9 @@ module.exports = function (RED) {
         }
       }
 
-      let openApiUrl = (msg.openApi && msg.openApi.url) ? msg.openApi.url : config.openApiUrl
+      const openApiUrl = (msg.openApi && msg.openApi.url) ? msg.openApi.url : config.openApiUrl
       // no optional chaining as long as Node-Red supports node.js v12
       // if (msg?.openApi?.url) openApiUrl = msg.openApi.url
-      if (msg.openApi && msg.openApi.url) openApiUrl = msg.openApi.url
-
       let parameters = {}
       let requestBody = {} // we need a separate parameter for body in OpenApi 3
       if (msg.openApi && msg.openApi.parameters) {
@@ -61,14 +59,8 @@ module.exports = function (RED) {
           }
         }
       }
-      // preferred use operationId. If not available use pathname + method
-      let operationId, pathName, method
-      if (config.operationData.withoutOriginalOpId) {
-        pathName = config.operationData.pathName
-        method = config.operationData.method
-      } else {
-        operationId = config.operation
-      }
+
+      const { operationId, pathName, method } = identifyOperation(config)
       // fallback if no content type can be found
       let requestContentType = 'application/json'
       if (config.requestContentType) requestContentType = config.requestContentType
@@ -98,8 +90,18 @@ module.exports = function (RED) {
       }
       if (config.responseContentType) openApiOptions.responseContentType = config.responseContentType
 
+      const initiateOptions = {
+        url: openApiUrl
+      }
+      if (node.devMode) {
+        const agent = require('https').Agent({
+          rejectUnauthorized: false
+        })
+        initiateOptions.http = (request) => Swagger.http({ ...request, agent })
+        openApiOptions.http = (request) => Swagger.http({ ...request, agent })
+      }
       // Start Swagger / OpenApi
-      Swagger(openApiUrl).then((client) => {
+      Swagger(initiateOptions).then((client) => {
         node.status({ fill: 'yellow', shape: 'dot', text: 'Retrieving...' })
         client.execute(openApiOptions)
           .then((res) => {
@@ -123,8 +125,18 @@ module.exports = function (RED) {
     if (!openApiUrl) {
       return response.send("Missing or invalid openApiUrl parameter 'openApiUrl': " + openApiUrl)
     }
-    const decodedUrl = decodeURIComponent(openApiUrl)
-    Swagger(decodedUrl).then((client) => {
+    // const url = decodeURIComponent(openApiUrl)
+    const options = {
+      url: decodeURIComponent(openApiUrl)
+    }
+
+    if (request.query.devMode === 'true') {
+      const agent = require('https').Agent({
+        rejectUnauthorized: false
+      })
+      options.http = (request) => Swagger.http({ ...request, agent })
+    }
+    Swagger(options).then((client) => {
       const newApiList = createNewApiList(client)
       response.send({
         apiList: newApiList,

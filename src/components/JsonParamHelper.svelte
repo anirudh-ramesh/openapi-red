@@ -44,18 +44,12 @@
   }
 
   let hideJsonKeys = true
-  let label = "Show Keys"
-  $: if (hideJsonKeys) {
-    label = "Show Keys"
-  } else {
-    label = "Hide Keys"
-  }
 </script>
 
 <Row>
-  <Button inline icon="show" label={label} on:click={() => (hideJsonKeys = !hideJsonKeys)} />
-  <Button inline icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}/>
-  <Button inline icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}/>
+  <Button inline small icon={hideJsonKeys ? "eye" : "eye-slash"} label={hideJsonKeys ? "Show keys" : "Hide keys"} on:click={() => (hideJsonKeys = !hideJsonKeys)} />
+  <Button inline small icon="edit" label="Set default" on:click={() => setJsonKeys(param, "default")}/>
+  <Button inline small icon="edit" label="Set required" on:click={() => setJsonKeys(param, "required")}/>
 </Row>
 <div class:jsonKeys={hideJsonKeys}>
   {#if param.schema && param.keys}

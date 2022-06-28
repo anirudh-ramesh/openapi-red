@@ -1,5 +1,12 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+**Version 1.1.0**
+- Experimental: added dev mode (ignore old/self signed certificate)
+- code refactoring
+- Bugfix init content request/response type
+- UI Changes
+- Node-Red theme compatible
+
 **Version 1.0.9**
 - updated package.json no change in code
 
