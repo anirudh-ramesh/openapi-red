@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full
+FROM gitpod/workspace-full:2022-07-22-21-28-39
 
 # Install custom tools, runtimes, etc.
 # For example "bastet", a command-line tetris clone:
