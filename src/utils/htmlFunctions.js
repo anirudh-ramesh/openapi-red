@@ -100,7 +100,7 @@ const orderRequired = (a, b) => {
   return comparison
 }
 
-const createParameters = (node, oldParameters) => {
+const createParameters = (node, oldParameters = {}) => {
   // new in openApi: body request
   // check if requestBody is in parameters or separate
   if (!node.operationData.parameters?.requestBody && node.operationData?.requestBody?.content) {
@@ -113,17 +113,18 @@ const createParameters = (node, oldParameters) => {
         name: 'Request body',
         in: '',
         schema: content[node.requestContentType].schema || null,
-        value: oldParameters?.[' Request body']?.value || '{}',
+        value: oldParameters[' Request body']?.value || '{}',
         required: !!requestBody?.required || false,
-        isActive: !!requestBody?.required || oldParameters?.[' Request body']?.isActive || false,
+        isActive: !!requestBody?.required || oldParameters[' Request body']?.isActive || false,
         description: requestBody?.description || '-',
-        type: oldParameters?.[' Request body']?.inputType || 'json',
+        type: oldParameters[' Request body']?.inputType || 'json',
         allowedTypes: getAllowedTypes('json'),
         keys
       }
       node.parameters.push(newParameter)
     }
   }
+
   // add standard parameters
   const parameters = node.operationData?.parameters?.sort(orderRequired) || []
   parameters.forEach(param => {
@@ -134,9 +135,9 @@ const createParameters = (node, oldParameters) => {
         name: param.name,
         in: param.in,
         required: param.required,
-        value: oldParameters?.[param.name + ' ' + param.in]?.value || '',
-        isActive: !!param.required || oldParameters?.[param.name + ' ' + param.in]?.isActive || false,
-        type: oldParameters?.[param.name + ' ' + param.in]?.inputType || getCorrectType(param), // selected type
+        value: oldParameters[param.name + ' ' + param.in]?.value || '',
+        isActive: !!param.required || oldParameters[param.name + ' ' + param.in]?.isActive || false,
+        type: oldParameters[param.name + ' ' + param.in]?.inputType || getCorrectType(param), // selected type
         allowedTypes: getAllowedTypes(param),
         description: param.description || '-',
         schema: param.schema || null,

@@ -21,8 +21,8 @@
             parameters.forEach(p => {
               if (isValid && p.isActive) {
                 if (p.required && p.value.trim() === '') isValid = false
-                // validation of typedinput only if element exists!
-                if (isValid && window.$('#node-input-' + p.id).length) isValid = window.$('#node-input-' + p.id).typedInput('validate')
+                const typedInputField = window.$('#node-input-' + window.$.escapeSelector(p.id))
+                if (isValid && typedInputField.length) isValid = typedInputField.typedInput('validate')
               }
             })
             return isValid

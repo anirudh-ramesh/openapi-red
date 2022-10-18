@@ -1,5 +1,8 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+## Version 1.1.1 (18th of October 2022)
+- Bugfix Parameters with special characters
+
 **Version 1.1.0**
 - Experimental: added dev mode (ignore old/self signed certificate)
 - code refactoring
