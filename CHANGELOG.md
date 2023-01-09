@@ -1,5 +1,8 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+## Version 1.1.2 (09th of January 2023)
+- Experimental: Bugfix for Safari
+
 ## Version 1.1.1 (18th of October 2022)
 - Bugfix Parameters with special characters
 
