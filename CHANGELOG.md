@@ -1,5 +1,8 @@
 > **Attention:** ⚠️ means that a change breaks things. Manual adjustments will be necessary. So be careful before updating. Even data loss might occur.
 
+## Version 1.1.3 (11th of January 2023)
+- Bugfix for Safari with new SIR version
+
 ## Version 1.1.2 (09th of January 2023)
 - Experimental: Bugfix for Safari
 
